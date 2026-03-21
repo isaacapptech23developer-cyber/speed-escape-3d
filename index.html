@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Speed Escape 3D</title>
+
+    <!-- SEO & Metadata -->
+    <meta
+      name="description"
+      content="Speed Escape 3D is a high-speed endless runner car game. Dodge obstacles, collect coins, and unlock new cars!"
+    />
+    <meta
+      name="keywords"
+      content="3D racing, car game, endless runner, speed escape 3d, web game, html5 game"
+    />
+    <meta name="author" content="Isaac Simiyu" />
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="Speed Escape 3D" />
+    <meta
+      property="og:description"
+      content="A high-speed 3D car racing game. Dodge obstacles, collect coins, and unlock new levels."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="./assets/icons/icon-512.svg" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="./config/manifest.json" />
+    <meta name="theme-color" content="#ff5500" />
+    <link rel="apple-touch-icon" href="./assets/icons/icon-512.svg" />
+
+    <link rel="stylesheet" href="./styles/style.css?v=5" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="game-canvas-container"></div>
+
+    <div id="ui-layer">
+      <!-- Main Menu -->
+      <div id="main-menu" class="screen active">
+        <div class="menu-content">
+          <h1>SPEED ESCAPE 3D</h1>
+          <div class="stats">
+            <span id="menu-high-score">High Score: 0</span>
+            <span id="menu-coins">Coins: 0</span>
+          </div>
+          
+          <!-- Daily Challenge -->
+          <div id="daily-challenge-box" style="background: rgba(255, 255, 255, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #00ffff;">
+            <div style="color: #00ffff; font-size: 0.9rem; font-weight: bold; margin-bottom: 5px;">DAILY CHALLENGE</div>
+            <div id="daily-challenge-desc" style="font-size: 1rem; margin-bottom: 5px;">Loading...</div>
+            <div id="daily-challenge-reward" style="color: #ffd700; font-size: 0.9rem; font-weight: bold;">Reward: 0 Coins</div>
+            <div id="daily-challenge-status" style="color: #00ff00; font-size: 0.9rem; font-weight: bold; display: none; margin-top: 5px;">COMPLETED!</div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; align-items: center;">
+            <button id="btn-start" class="primary-btn" style="width: 100%; max-width: 300px;">START RACE</button>
+            <button id="btn-garage" class="secondary-btn" style="width: 100%; max-width: 300px;">GARAGE</button>
+            <button id="btn-select-level" class="secondary-btn" style="width: 100%; max-width: 300px;">SELECT LEVEL: 1</button>
+            <button id="btn-settings" class="secondary-btn" style="width: 100%; max-width: 300px;">SETTINGS</button>
+          </div>
+          <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+            <button id="btn-rate" class="secondary-btn" style="font-size: 0.8rem; padding: 10px 20px;">RATE US</button>
+            <button id="btn-share" class="secondary-btn" style="font-size: 0.8rem; padding: 10px 20px;">SHARE</button>
+            <button id="btn-feedback" class="secondary-btn" style="font-size: 0.8rem; padding: 10px 20px;">FEEDBACK</button>
+          </div>
+          
+          <!-- Music Player -->
+          <div id="music-player" style="background: rgba(0, 0, 0, 0.6); padding: 10px; border-radius: 8px; margin-top: 15px; border: 1px solid #00ffff; display: flex; align-items: center; justify-content: space-between;">
+            <button id="btn-music-prev" style="background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; padding: 5px; margin: 0; box-shadow: none;">&#9664;</button>
+            <div style="text-align: center; flex: 1;">
+              <div style="font-size: 0.7rem; color: #00ffff; text-transform: uppercase;">Now Playing</div>
+              <div id="music-track-name" style="font-size: 0.9rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Sci-Fi Drone</div>
+            </div>
+            <button id="btn-music-next" style="background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; padding: 5px; margin: 0; box-shadow: none;">&#9654;</button>
+          </div>
+
+          <div style="margin-top: 20px">
+            <a
+              href="contact.html"
+              style="color: white; text-decoration: underline; font-size: 14px"
+              >Contact Developer</a
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Level Selection Menu -->
+      <div id="level-menu" class="screen">
+        <div class="menu-content" style="max-width: 600px; width: 90%;">
+          <h2>SELECT LEVEL</h2>
+          <div id="level-grid" class="level-grid">
+            <!-- Level buttons will be generated here -->
+          </div>
+          <button id="btn-level-back" class="secondary-btn mt-20">BACK</button>
+        </div>
+      </div>
+
+      <!-- Garage Menu -->
+      <div id="garage-menu" class="screen" style="justify-content: flex-end; padding-bottom: 20px;">
+        <div class="menu-content" style="max-width: 600px; width: 90%; background: rgba(0, 0, 0, 0.85); padding: 15px; margin-top: auto; max-height: 55vh;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2 style="margin: 0;">GARAGE</h2>
+            <div style="color: #ffd700; font-weight: bold;">Coins: <span id="garage-coins-val">0</span></div>
+          </div>
+          
+          <!-- Car Previews Grid -->
+          <div id="car-previews" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px;">
+            <!-- Generated in JS -->
+          </div>
+
+          <!-- Car Info -->
+          <div style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <h3 id="car-name" style="color: #00ffff; margin-bottom: 10px; font-size: 1.5rem;">FALCON</h3>
+            
+            <!-- Stats Bars -->
+            <div style="margin-bottom: 15px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 2px;">
+                <span>Speed</span>
+                <span id="upg-lvl-speed">0</span>
+              </div>
+              <div style="width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                <div id="stat-bar-speed" style="width: 50%; height: 100%; background: #00ff00;"></div>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 2px;">
+                <span>Handling</span>
+                <span id="upg-lvl-handling">0</span>
+              </div>
+              <div style="width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                <div id="stat-bar-handling" style="width: 50%; height: 100%; background: #00ff00;"></div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 2px;">
+                <span>Acceleration</span>
+                <span id="upg-lvl-acceleration">0</span>
+              </div>
+              <div style="width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                <div id="stat-bar-acceleration" style="width: 50%; height: 100%; background: #00ff00;"></div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 2px;">
+                <span>Boost</span>
+                <span id="upg-lvl-boost">0</span>
+              </div>
+              <div style="width: 100%; height: 8px; background: #333; border-radius: 4px; overflow: hidden; margin-bottom: 8px;">
+                <div id="stat-bar-boost" style="width: 50%; height: 100%; background: #00ff00;"></div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div id="car-status" style="text-align: center; margin-bottom: 10px; font-weight: bold; color: #ff0000;">LOCKED</div>
+            <div style="display: flex; gap: 10px;">
+              <button id="btn-car-select" class="primary-btn hidden" style="flex: 1;">SELECT</button>
+              <button id="btn-car-buy-coins" class="primary-btn hidden" style="flex: 1;">BUY (1000)</button>
+              <button id="btn-car-buy-ad" class="secondary-btn hidden" style="flex: 1;">WATCH AD (0/5)</button>
+              <button id="btn-toggle-upgrades" class="secondary-btn hidden" style="flex: 1;">UPGRADES</button>
+            </div>
+          </div>
+
+          <!-- Upgrades Panel -->
+          <div id="car-upgrades" class="hidden" style="background: rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <h4 style="margin-bottom: 10px; color: #00ffff;">UPGRADES</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <button id="btn-upg-speed" class="secondary-btn" style="font-size: 0.8rem; padding: 5px;">Speed<br>100 C</button>
+              <button id="btn-upg-handling" class="secondary-btn" style="font-size: 0.8rem; padding: 5px;">Handling<br>100 C</button>
+              <button id="btn-upg-acceleration" class="secondary-btn" style="font-size: 0.8rem; padding: 5px;">Accel<br>100 C</button>
+              <button id="btn-upg-boost" class="secondary-btn" style="font-size: 0.8rem; padding: 5px;">Boost<br>100 C</button>
+            </div>
+          </div>
+          
+          <button id="btn-garage-back" class="secondary-btn" style="width: 100%;">BACK TO MENU</button>
+        </div>
+      </div>
+
+      <!-- Settings Menu -->
+      <div id="settings-menu" class="screen">
+        <div class="menu-content">
+          <h2>SETTINGS</h2>
+          <div class="settings-group">
+            <label>Sound Effects:</label>
+            <button id="btn-toggle-sound" class="toggle-btn">ON</button>
+          </div>
+          <div class="settings-group">
+            <label>Graphics Quality:</label>
+            <button id="btn-toggle-graphics" class="toggle-btn">HIGH</button>
+          </div>
+          <button id="btn-reset-progress" class="danger-btn">
+            RESET PROGRESS
+          </button>
+          <div class="legal-links">
+            <a href="privacy.html" target="_blank">Privacy Policy</a> |
+            <a href="terms.html" target="_blank">Terms of Service</a>
+          </div>
+          <button id="btn-settings-back" class="secondary-btn mt-20">
+            BACK
+          </button>
+        </div>
+      </div>
+
+      <!-- HUD -->
+      <div id="hud" class="screen">
+        <div id="start-countdown" class="hidden">
+          <span id="countdown-text">3</span>
+        </div>
+        <div class="hud-top">
+          <div class="score-board">
+            <div id="hud-score">Score: 0</div>
+            <div id="hud-coins">Coins: 0</div>
+            <div id="hud-boost-container" class="hidden">
+              <div id="hud-boost-bar"></div>
+            </div>
+          </div>
+          <button id="btn-pause" class="icon-btn">||</button>
+        </div>
+        <div id="touch-controls">
+          <div class="controls-left" style="flex-direction: row; align-items: flex-end;">
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+              <button id="btn-forward" class="touch-btn">▲</button>
+              <button id="btn-reverse" class="touch-btn">▼</button>
+            </div>
+            <button id="btn-horn" class="touch-btn" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(0, 255, 255, 0.2); border: 2px solid #00ffff; color: #00ffff; display: flex; align-items: center; justify-content: center; margin-left: 15px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="controls-center" style="display: flex; align-items: flex-end; justify-content: center;">
+          </div>
+          <div class="controls-right">
+            <button id="btn-left" class="touch-btn">◀</button>
+            <button id="btn-right" class="touch-btn">▶</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tutorial Overlay -->
+      <div id="tutorial-overlay" class="screen" style="background: rgba(0,0,0,0.8); z-index: 50;">
+        <div class="menu-content" style="background: transparent; border: none; box-shadow: none;">
+          <h2 id="tutorial-title" style="color: #00ffff; font-size: 2.5rem; text-shadow: 0 0 10px #00ffff;">TUTORIAL</h2>
+          <p id="tutorial-text" style="font-size: 1.5rem; margin: 20px 0; line-height: 1.5;">Welcome to Speed Escape 3D!</p>
+          <div id="tutorial-animation" style="font-size: 4rem; margin: 20px 0; animation: pulse 1s infinite;">👆</div>
+          <button id="btn-tutorial-next" class="primary-btn">NEXT</button>
+        </div>
+      </div>
+
+      <!-- Game Over -->
+      <div id="game-over" class="screen">
+        <div class="menu-content">
+          <h2>CRASHED!</h2>
+          <div class="stats">
+            <span id="go-score">Score: 0</span>
+            <span id="go-coins">Coins Collected: 0</span>
+          </div>
+          <button id="btn-continue-ad" class="primary-btn" style="background: #00ffff; color: #000; margin-bottom: 10px;">WATCH AD TO CONTINUE</button>
+          <button id="btn-restart" class="primary-btn">TRY AGAIN</button>
+          <button id="btn-menu" class="secondary-btn">MAIN MENU</button>
+        </div>
+      </div>
+
+      <!-- Pause Menu -->
+      <div id="pause-menu" class="screen">
+        <div class="menu-content">
+          <h2>PAUSED</h2>
+          <button id="btn-resume" class="primary-btn">RESUME</button>
+          <button id="btn-quit" class="secondary-btn">QUIT</button>
+        </div>
+      </div>
+
+      <!-- Custom Modal -->
+      <div id="custom-modal" class="screen" style="z-index: 100">
+        <div class="menu-content">
+          <h2 id="modal-title">Notice</h2>
+          <p
+            id="modal-message"
+            style="margin-bottom: 20px; font-size: 1.2rem"
+          ></p>
+          <div class="menu-row">
+            <button id="btn-modal-ok" class="primary-btn">OK</button>
+            <button id="btn-modal-cancel" class="secondary-btn hidden">
+              CANCEL
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./scripts/main.js?v=5"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch((err) => {
+            console.log("ServiceWorker registration failed: ", err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
