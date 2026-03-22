@@ -80,6 +80,7 @@ let selectedCarId = localStorage.getItem("se3d_selectedCar") || "falcon";
 let totalCoins = loadState("totalCoins", 0);
 let highScore = loadState("highScore", 0);
 let unlockedLevels = loadState("unlockedLevels", 1);
+let levelMaxCoins = loadArrayState("levelMaxCoins", [0, 0, 0, 0, 0, 0, 0, 0]);
 let unlockedCars = loadArrayState("unlockedCars", ["falcon"]);
 let selectedLevel = 1;
 
@@ -222,10 +223,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      // Unlock logic
-      if (totalCoins >= 500 && unlockedLevels < 2) unlockedLevels = 2;
-      if (totalCoins >= 1000 && unlockedLevels < 3) unlockedLevels = 3;
-      if (totalCoins >= 2000 && unlockedLevels < 4) unlockedLevels = 4;
+      // Unlock logic based on max coins collected in previous levels
+      if (coins > levelMaxCoins[selectedLevel - 1]) {
+        levelMaxCoins[selectedLevel - 1] = coins;
+        saveArrayState("levelMaxCoins", levelMaxCoins);
+      }
+
+      if (levelMaxCoins[0] >= 100 && unlockedLevels < 2) unlockedLevels = 2;
+      if (levelMaxCoins[1] >= 150 && unlockedLevels < 3) unlockedLevels = 3;
+      if (levelMaxCoins[2] >= 200 && unlockedLevels < 4) unlockedLevels = 4;
 
       saveState("totalCoins", totalCoins);
       saveState("highScore", highScore);
@@ -332,20 +338,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnSelect = document.getElementById("btn-car-select");
     const btnBuyCoins = document.getElementById("btn-car-buy-coins");
     const btnBuyAd = document.getElementById("btn-car-buy-ad");
-    const btnToggleUpgrades = document.getElementById("btn-toggle-upgrades");
     const statusText = document.getElementById("car-status");
     const upgradesPanel = document.getElementById("car-upgrades");
 
     btnSelect.classList.add("hidden");
     btnBuyCoins.classList.add("hidden");
     btnBuyAd.classList.add("hidden");
-    btnToggleUpgrades.classList.add("hidden");
     upgradesPanel.classList.add("hidden");
 
     if (unlockedCars.includes(car.id)) {
       statusText.innerText = selectedCarId === car.id ? "Selected" : "Unlocked";
       btnSelect.classList.remove("hidden");
-      btnToggleUpgrades.classList.remove("hidden");
+      upgradesPanel.classList.remove("hidden");
 
       if (selectedCarId === car.id) {
         btnSelect.innerText = "SELECTED";
@@ -475,8 +479,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (selectedLevel > unlockedLevels) {
-      let reqCoins = selectedLevel === 2 ? 500 : (selectedLevel === 3 ? 1000 : 2000);
-      showModal("Locked", `Reach ${reqCoins} coins to unlock this level.`, false);
+      let reqCoins = selectedLevel === 2 ? 100 : (selectedLevel === 3 ? 150 : 200);
+      showModal("Locked", `Score ${reqCoins} coins in Level ${selectedLevel - 1} to unlock this level.`, false);
       return;
     }
     
@@ -548,6 +552,37 @@ document.addEventListener("DOMContentLoaded", () => {
     garageIsHovered = false;
   });
 
+  // Daily Reward Logic
+  const btnDailyReward = document.getElementById("btn-daily-reward");
+  const updateDailyRewardUI = () => {
+    const lastClaimed = localStorage.getItem("se3d_lastDailyReward");
+    const today = new Date().toDateString();
+    if (lastClaimed === today) {
+      btnDailyReward.innerText = "REWARD CLAIMED";
+      btnDailyReward.style.opacity = "0.5";
+      btnDailyReward.style.pointerEvents = "none";
+    } else {
+      btnDailyReward.innerText = "CLAIM DAILY REWARD (500 Coins)";
+      btnDailyReward.style.opacity = "1";
+      btnDailyReward.style.pointerEvents = "auto";
+    }
+  };
+  updateDailyRewardUI();
+
+  btnDailyReward.addEventListener("click", () => {
+    const lastClaimed = localStorage.getItem("se3d_lastDailyReward");
+    const today = new Date().toDateString();
+    if (lastClaimed !== today) {
+      totalCoins += 500;
+      saveState("totalCoins", totalCoins);
+      localStorage.setItem("se3d_lastDailyReward", today);
+      updateMenuStats();
+      updateDailyRewardUI();
+      engine.audio.playCoin();
+      alert("You claimed 500 coins!");
+    }
+  });
+
   document.getElementById("btn-garage").addEventListener("click", () => {
     showScreen("garage-menu");
     engine.state = "garage";
@@ -588,7 +623,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("btn-feedback").addEventListener("click", () => {
-    window.location.href = "mailto:isaacapptech23developer@gmail.com?subject=Speed Escape 3D Feedback";
+    window.location.href = "mailto:technician254isaac@gmail.com?subject=Speed Escape 3D Feedback";
   });
 
   // Music Player
@@ -633,9 +668,9 @@ document.addEventListener("DOMContentLoaded", () => {
     grid.innerHTML = "";
     
     // Update unlocks based on coins before generating grid
-    if (totalCoins >= 500 && unlockedLevels < 2) unlockedLevels = 2;
-    if (totalCoins >= 1000 && unlockedLevels < 3) unlockedLevels = 3;
-    if (totalCoins >= 2000 && unlockedLevels < 4) unlockedLevels = 4;
+    if (levelMaxCoins[0] >= 100 && unlockedLevels < 2) unlockedLevels = 2;
+    if (levelMaxCoins[1] >= 150 && unlockedLevels < 3) unlockedLevels = 3;
+    if (levelMaxCoins[2] >= 200 && unlockedLevels < 4) unlockedLevels = 4;
     saveState("unlockedLevels", unlockedLevels);
 
     for (let i = 1; i <= 8; i++) {
@@ -668,13 +703,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       } else if (!isUnlocked) {
         const lockedIcon = document.createElement("div");
-        let reqCoins = i === 2 ? 500 : (i === 3 ? 1000 : 2000);
-        lockedIcon.innerText = `🔒 ${reqCoins} Coins`;
-        lockedIcon.style.fontSize = "0.7rem";
+        let reqCoins = i === 2 ? 100 : (i === 3 ? 150 : 200);
+        lockedIcon.innerText = `🔒 Score ${reqCoins} Coins in Lvl ${i - 1}`;
+        lockedIcon.style.fontSize = "0.6rem";
         lockedIcon.style.color = "#ff0000";
         btn.appendChild(lockedIcon);
         btn.addEventListener("click", () => {
-          showModal("Locked", `Reach ${reqCoins} coins to unlock this level.`, false);
+          showModal("Locked", `Score ${reqCoins} coins in Level ${i - 1} to unlock this level.`, false);
         });
       } else {
         btn.addEventListener("click", () => {
@@ -783,17 +818,6 @@ document.addEventListener("DOMContentLoaded", () => {
     updateMenuStats();
     AdMob.showBanner();
   });
-
-  document
-    .getElementById("btn-toggle-upgrades")
-    .addEventListener("click", () => {
-      const upgradesPanel = document.getElementById("car-upgrades");
-      if (upgradesPanel.classList.contains("hidden")) {
-        upgradesPanel.classList.remove("hidden");
-      } else {
-        upgradesPanel.classList.add("hidden");
-      }
-    });
 
   document.getElementById("btn-car-select").addEventListener("click", () => {
     const car = CARS[currentCarIndex];
@@ -946,6 +970,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnHorn) {
     btnHorn.addEventListener("touchstart", (e) => { e.preventDefault(); engine.audio.playHorn(); }, { passive: false });
     btnHorn.addEventListener("mousedown", (e) => { e.preventDefault(); engine.audio.playHorn(); });
+  }
+
+  const btnBoost = document.getElementById("btn-boost");
+  if (btnBoost) {
+    btnBoost.addEventListener("touchstart", (e) => { e.preventDefault(); engine.activateBoost(); }, { passive: false });
+    btnBoost.addEventListener("mousedown", (e) => { e.preventDefault(); engine.activateBoost(); });
   }
 
   // Initial Ad

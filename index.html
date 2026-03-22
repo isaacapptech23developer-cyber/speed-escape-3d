@@ -63,6 +63,9 @@
             <div id="daily-challenge-status" style="color: #00ff00; font-size: 0.9rem; font-weight: bold; display: none; margin-top: 5px;">COMPLETED!</div>
           </div>
 
+          <!-- Daily Reward -->
+          <button id="btn-daily-reward" class="secondary-btn" style="width: 100%; max-width: 300px; margin-bottom: 15px; background: rgba(255, 215, 0, 0.2); border-color: #ffd700; color: #ffd700;">CLAIM DAILY REWARD (500 Coins)</button>
+
           <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; align-items: center;">
             <button id="btn-start" class="primary-btn" style="width: 100%; max-width: 300px;">START RACE</button>
             <button id="btn-garage" class="secondary-btn" style="width: 100%; max-width: 300px;">GARAGE</button>
@@ -164,7 +167,6 @@
               <button id="btn-car-select" class="primary-btn hidden" style="flex: 1;">SELECT</button>
               <button id="btn-car-buy-coins" class="primary-btn hidden" style="flex: 1;">BUY (1000)</button>
               <button id="btn-car-buy-ad" class="secondary-btn hidden" style="flex: 1;">WATCH AD (0/5)</button>
-              <button id="btn-toggle-upgrades" class="secondary-btn hidden" style="flex: 1;">UPGRADES</button>
             </div>
           </div>
 
@@ -229,19 +231,32 @@
               <button id="btn-forward" class="touch-btn">▲</button>
               <button id="btn-reverse" class="touch-btn">▼</button>
             </div>
-            <button id="btn-horn" class="touch-btn" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(0, 255, 255, 0.2); border: 2px solid #00ffff; color: #00ffff; display: flex; align-items: center; justify-content: center; margin-left: 15px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-              </svg>
-            </button>
+            <div style="display: flex; flex-direction: column; align-items: center; margin-left: 15px;">
+              <button id="btn-horn" class="touch-btn" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(0, 255, 255, 0.2); border: 2px solid #00ffff; color: #00ffff; display: flex; align-items: center; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                </svg>
+              </button>
+              <span style="color: #00ffff; font-size: 0.7rem; font-weight: bold; margin-top: 5px; text-shadow: 0 0 5px #00ffff;">HORN</span>
+            </div>
           </div>
           <div class="controls-center" style="display: flex; align-items: flex-end; justify-content: center;">
           </div>
-          <div class="controls-right">
-            <button id="btn-left" class="touch-btn">◀</button>
-            <button id="btn-right" class="touch-btn">▶</button>
+          <div class="controls-right" style="flex-direction: row; align-items: flex-end;">
+            <div style="display: flex; flex-direction: column; align-items: center; margin-right: 15px;">
+              <button id="btn-boost" class="touch-btn" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(255, 0, 255, 0.2); border: 2px solid #ff00ff; color: #ff00ff; display: flex; align-items: center; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                </svg>
+              </button>
+              <span style="color: #ff00ff; font-size: 0.7rem; font-weight: bold; margin-top: 5px; text-shadow: 0 0 5px #ff00ff;">BOOST</span>
+            </div>
+            <div style="display: flex; gap: 15px;">
+              <button id="btn-left" class="touch-btn">◀</button>
+              <button id="btn-right" class="touch-btn">▶</button>
+            </div>
           </div>
         </div>
       </div>

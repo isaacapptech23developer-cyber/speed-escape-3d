@@ -186,7 +186,7 @@ export class GameEngine {
         this.state = 'countdown';
         this.speed = this.baseSpeed;
         this.hasContinued = true;
-        this.audio.playEngine();
+        this.audio.startEngine();
         this.audio.playBGM();
         
         // Clear nearby obstacles to prevent immediate crash
@@ -295,8 +295,8 @@ export class GameEngine {
             // Passive boost charging
             this.boostCharge += dt * 5; // Takes 20 seconds to fill
             if (this.boostCharge >= this.maxBoostCharge) {
-                this.boostCharge = 0;
-                this.activateBoost();
+                this.boostCharge = this.maxBoostCharge;
+                this.audio.updateChargingSound(false, 1);
             } else {
                 this.audio.updateChargingSound(true, this.boostCharge / this.maxBoostCharge);
             }
@@ -331,8 +331,8 @@ export class GameEngine {
         }
 
         // Steering
-        const laneWidth = 4;
-        const maxSteer = laneWidth * 1.5; // 6
+        const laneWidth = 5.33;
+        const maxSteer = laneWidth * 1.4; // ~7.46
         
         const steerSpeed = 15 + (this.carStats.handling * 2);
         
@@ -482,12 +482,13 @@ export class GameEngine {
             const boosterBox = new THREE.Box3().setFromObject(booster);
             if (carBox.intersectsBox(boosterBox)) {
                 booster.visible = false;
-                this.activateBoost();
+                this.activateBoost(true);
             }
         }
     }
 
-    activateBoost() {
+    activateBoost(force = false) {
+        if (!force && this.boostCharge < this.maxBoostCharge) return;
         this.isBoosting = true;
         this.boostCharge = 0;
         this.boostTimer = 3 + (this.carStats.boost * 0.5); // Boost duration based on upgrade

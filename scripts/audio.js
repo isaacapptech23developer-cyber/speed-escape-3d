@@ -1,7 +1,20 @@
 export class AudioManager {
+    set enabled(value) {
+        this._enabled = value;
+        if (!value) {
+            this.stopBGM();
+            this.stopEngine();
+            this.stopChargingSound();
+        }
+    }
+
+    get enabled() {
+        return this._enabled;
+    }
+
     constructor() {
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        this.enabled = true;
+        this._enabled = true;
         
         // Engine Sound Synthesis
         this.engineOsc = null;
@@ -143,16 +156,17 @@ export class AudioManager {
         this.engineOsc2.type = 'square';
         this.engineOsc2.frequency.setValueAtTime(20, this.ctx.currentTime); // Sub-oscillator for rumble
         
-        this.engineGain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        this.engineGain.gain.setValueAtTime(0.01, this.ctx.currentTime);
         
-        // Add a lowpass filter to muffle the harsh sawtooth
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(300, this.ctx.currentTime);
+        // Add a lowpass filter that opens up with speed
+        this.engineFilter = this.ctx.createBiquadFilter();
+        this.engineFilter.type = 'lowpass';
+        this.engineFilter.frequency.setValueAtTime(120, this.ctx.currentTime);
+        this.engineFilter.Q.setValueAtTime(2, this.ctx.currentTime); // Add some resonance
         
-        this.engineOsc.connect(filter);
-        this.engineOsc2.connect(filter);
-        filter.connect(this.engineGain);
+        this.engineOsc.connect(this.engineFilter);
+        this.engineOsc2.connect(this.engineFilter);
+        this.engineFilter.connect(this.engineGain);
         this.engineGain.connect(this.ctx.destination);
         
         this.engineOsc.start();
@@ -160,16 +174,18 @@ export class AudioManager {
     }
 
     updateEngineSpeed(speedRatio) {
-        if (this.enabled && this.engineOsc && this.engineGain) {
-            // Adjust frequency and volume based on speed
-            const targetFreq = 40 + (speedRatio * 160); // 40Hz to 200Hz
-            const targetFreq2 = 20 + (speedRatio * 80); // 20Hz to 100Hz
-            const targetVol = 0.1 + (speedRatio * 0.25); // 0.1 to 0.35
+        if (this.enabled && this.engineOsc && this.engineGain && this.engineFilter) {
+            // Adjust frequency, filter, and volume based on speed
+            const targetFreq = 40 + (speedRatio * 150); // 40Hz to 190Hz
+            const targetFreq2 = 20 + (speedRatio * 75); // 20Hz to 95Hz
+            const targetVol = 0.01 + (speedRatio * 0.04); // 0.01 to 0.05
+            const targetFilterFreq = 120 + (speedRatio * 800); // Filter opens up as speed increases
             
             this.engineOsc.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.1);
             if (this.engineOsc2) {
                 this.engineOsc2.frequency.setTargetAtTime(targetFreq2, this.ctx.currentTime, 0.1);
             }
+            this.engineFilter.frequency.setTargetAtTime(targetFilterFreq, this.ctx.currentTime, 0.1);
             this.engineGain.gain.setTargetAtTime(targetVol, this.ctx.currentTime, 0.1);
         }
     }
@@ -187,6 +203,10 @@ export class AudioManager {
                     this.engineOsc2.stop();
                     this.engineOsc2.disconnect();
                     this.engineOsc2 = null;
+                }
+                if (this.engineFilter) {
+                    this.engineFilter.disconnect();
+                    this.engineFilter = null;
                 }
                 if (this.engineGain) {
                     this.engineGain.disconnect();

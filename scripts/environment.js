@@ -107,7 +107,7 @@ export class Environment {
         group.position.z = zPos;
 
         // Road
-        const roadGeom = new THREE.PlaneGeometry(12, this.segmentLength);
+        const roadGeom = new THREE.PlaneGeometry(16, this.segmentLength); // Wider road
         const road = new THREE.Mesh(roadGeom, this.roadMat);
         road.rotation.x = -Math.PI / 2;
         road.receiveShadow = true;
@@ -117,29 +117,68 @@ export class Environment {
         const grassGeom = new THREE.PlaneGeometry(50, this.segmentLength);
         const grassL = new THREE.Mesh(grassGeom, this.grassMat);
         grassL.rotation.x = -Math.PI / 2;
-        grassL.position.x = -31;
+        grassL.position.x = -33;
         grassL.receiveShadow = true;
         group.add(grassL);
 
         // Grass Right
         const grassR = new THREE.Mesh(grassGeom, this.grassMat);
         grassR.rotation.x = -Math.PI / 2;
-        grassR.position.x = 31;
+        grassR.position.x = 33;
         grassR.receiveShadow = true;
         group.add(grassR);
 
-        // Lane Markings
+        // Guardrails
+        const railGeom = new THREE.BoxGeometry(0.5, 1, this.segmentLength);
+        const railMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8, roughness: 0.2 });
+        railMat.onBeforeCompile = onBeforeCompileCurve;
+        
+        const railL = new THREE.Mesh(railGeom, railMat);
+        railL.position.set(-8.25, 0.5, 0);
+        railL.castShadow = true;
+        railL.receiveShadow = true;
+        group.add(railL);
+
+        const railR = new THREE.Mesh(railGeom, railMat);
+        railR.position.set(8.25, 0.5, 0);
+        railR.castShadow = true;
+        railR.receiveShadow = true;
+        group.add(railR);
+
+        // Lane Markings (3 lanes)
         for (let i = 0; i < this.segmentLength; i += 4) {
             const lineGeom = new THREE.PlaneGeometry(0.2, 2);
+            
             const lineL = new THREE.Mesh(lineGeom, this.lineMat);
             lineL.rotation.x = -Math.PI / 2;
-            lineL.position.set(-2, 0.01, i - this.segmentLength/2);
+            lineL.position.set(-2.66, 0.01, i - this.segmentLength/2);
             
             const lineR = new THREE.Mesh(lineGeom, this.lineMat);
             lineR.rotation.x = -Math.PI / 2;
-            lineR.position.set(2, 0.01, i - this.segmentLength/2);
+            lineR.position.set(2.66, 0.01, i - this.segmentLength/2);
             
             group.add(lineL, lineR);
+        }
+
+        // Occasional Tunnel (1 in 5 chance per segment, but not the first one)
+        if (zPos < -100 && Math.random() > 0.8) {
+            const tunnelGeom = new THREE.CylinderGeometry(9, 9, this.segmentLength, 16, 1, true);
+            const tunnelMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9, side: THREE.DoubleSide });
+            tunnelMat.onBeforeCompile = onBeforeCompileCurve;
+            const tunnel = new THREE.Mesh(tunnelGeom, tunnelMat);
+            tunnel.rotation.x = -Math.PI / 2;
+            tunnel.position.y = 0;
+            group.add(tunnel);
+            
+            // Tunnel Lights
+            for (let i = 0; i < this.segmentLength; i += 20) {
+                const lightGeom = new THREE.BoxGeometry(2, 0.2, 0.5);
+                const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffee });
+                lightMat.onBeforeCompile = onBeforeCompileCurve;
+                const light = new THREE.Mesh(lightGeom, lightMat);
+                light.position.set(0, 8.8, i - this.segmentLength/2);
+                group.add(light);
+            }
         }
 
         // Add Scenery

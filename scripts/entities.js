@@ -35,7 +35,7 @@ export class EntityManager {
         this.coinMat.onBeforeCompile = onBeforeCompileCurve;
         this.boosterMat.onBeforeCompile = onBeforeCompileCurve;
 
-        this.lanes = [-4, 0, 4];
+        this.lanes = [-5.33, 0, 5.33];
         this.lastSpawnZ = -200;
         this.relaxedMode = false;
         this.relaxedTimer = 0;
@@ -81,15 +81,64 @@ export class EntityManager {
     spawnObstacle() {
         let obs = this.obstacles.find(o => !o.visible);
         if (!obs) {
-            obs = new THREE.Mesh(this.obsGeom, this.obsMat);
-            obs.castShadow = true;
-            obs.receiveShadow = true;
+            obs = new THREE.Group();
+            
+            const type = Math.floor(Math.random() * 3);
+            if (type === 0) {
+                // Concrete Barrier
+                const geom = new THREE.BoxGeometry(3, 1.2, 1);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.9 });
+                mat.onBeforeCompile = onBeforeCompileCurve;
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.y = 0.6;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                obs.add(mesh);
+            } else if (type === 1) {
+                // Traffic Cone
+                const geom = new THREE.ConeGeometry(0.5, 1.5, 16);
+                const mat = new THREE.MeshStandardMaterial({ color: 0xff5500, roughness: 0.5 });
+                mat.onBeforeCompile = onBeforeCompileCurve;
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.y = 0.75;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                
+                // White stripe
+                const stripeGeom = new THREE.CylinderGeometry(0.35, 0.45, 0.3, 16);
+                const stripeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+                stripeMat.onBeforeCompile = onBeforeCompileCurve;
+                const stripe = new THREE.Mesh(stripeGeom, stripeMat);
+                stripe.position.y = 0.8;
+                obs.add(mesh, stripe);
+            } else {
+                // Wooden Crate
+                const geom = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 1.0 });
+                mat.onBeforeCompile = onBeforeCompileCurve;
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.y = 0.75;
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                
+                // Crate details (darker edges)
+                const edgeGeom = new THREE.BoxGeometry(1.6, 1.6, 1.6);
+                const edgeMat = new THREE.MeshBasicMaterial({ color: 0x5c3a21, wireframe: true });
+                edgeMat.onBeforeCompile = onBeforeCompileCurve;
+                const edges = new THREE.Mesh(edgeGeom, edgeMat);
+                edges.position.y = 0.75;
+                obs.add(mesh, edges);
+            }
+
             this.scene.add(obs);
             this.obstacles.push(obs);
         }
         
         const lane = this.lanes[Math.floor(Math.random() * this.lanes.length)];
-        obs.position.set(lane, 0.75, this.lastSpawnZ);
+        obs.position.set(lane, 0, this.lastSpawnZ);
+        
+        // Add bounding box for collision detection
+        obs.userData.box = new THREE.Box3();
         obs.visible = true;
     }
 
