@@ -134,7 +134,7 @@
 
       <!-- Level Selection Menu -->
       <div id="level-menu" class="screen">
-        <div class="menu-content" style="max-width: 600px; width: 90%;">
+        <div class="menu-content" style="max-width: 800px; width: 90%; max-height: 90vh;">
           <h2>SELECT LEVEL</h2>
           <div id="level-grid" class="level-grid">
             <!-- Level buttons will be generated here -->
@@ -144,8 +144,8 @@
       </div>
 
       <!-- Garage Menu -->
-      <div id="garage-menu" class="screen" style="justify-content: center; align-items: flex-end; padding: 20px;">
-        <div class="menu-content" style="max-width: 400px; width: 45%; background: rgba(0, 0, 0, 0.85); padding: 15px; margin-left: auto; max-height: 90vh;">
+      <div id="garage-menu" class="screen" style="flex-direction: row; justify-content: flex-end; align-items: center; padding: 20px;">
+        <div class="menu-content" style="max-width: 400px; width: 45%; background: rgba(0, 0, 0, 0.85); padding: 15px; max-height: calc(100vh - 40px); overflow-y: auto; pointer-events: auto; display: block; text-align: left;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <h2 style="margin: 0;">GARAGE</h2>
             <div style="color: #ffd700; font-weight: bold;">Coins: <span id="garage-coins-val">0</span></div>

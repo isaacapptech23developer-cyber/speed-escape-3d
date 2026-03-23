@@ -695,9 +695,10 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (isUnderDev) {
         const lockedIcon = document.createElement("div");
-        lockedIcon.innerText = "[LOCKED] Under Dev";
+        lockedIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><br>Under Dev`;
         lockedIcon.style.fontSize = "0.7rem";
         lockedIcon.style.color = "#ff5500";
+        lockedIcon.style.textAlign = "center";
         btn.appendChild(lockedIcon);
         btn.addEventListener("click", () => {
           showModal("Locked", "This level is under development.", false);
@@ -705,9 +706,10 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (!isUnlocked) {
         const lockedIcon = document.createElement("div");
         let reqCoins = i === 2 ? 100 : (i === 3 ? 150 : 200);
-        lockedIcon.innerText = `[LOCKED] Score ${reqCoins} Coins in Lvl ${i - 1}`;
-        lockedIcon.style.fontSize = "0.6rem";
+        lockedIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><br>Need ${reqCoins} Coins`;
+        lockedIcon.style.fontSize = "0.7rem";
         lockedIcon.style.color = "#ff0000";
+        lockedIcon.style.textAlign = "center";
         btn.appendChild(lockedIcon);
         btn.addEventListener("click", () => {
           showModal("Locked", `Score ${reqCoins} coins in Level ${i - 1} to unlock this level.`, false);

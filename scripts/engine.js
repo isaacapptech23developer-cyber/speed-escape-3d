@@ -262,7 +262,7 @@ export class GameEngine {
             // In landscape, UI is on the right, so center car on the left
             const yOffset = 0.5; 
             const zOffset = 5.0;
-            const xOffset = -2.0; // Move car to the left
+            const xOffset = 1.5; // Move camera to the right so car appears on the left
             this.camera.position.set(this.playerX + xOffset, 2.5, this.playerZ + zOffset);
             this.camera.lookAt(this.playerX + xOffset, yOffset, this.playerZ);
         } else if (this.state === 'menu') {
