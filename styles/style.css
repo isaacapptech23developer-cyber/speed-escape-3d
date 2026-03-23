@@ -10,6 +10,18 @@ body {
   overflow: hidden;
   touch-action: none;
 }
+/* Force portrait mode */
+@media screen and (orientation: landscape) {
+  #game-canvas-container, #ui-layer {
+    transform: rotate(-90deg);
+    transform-origin: left top;
+    width: 100vh;
+    height: 100vw;
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
+}
 #game-canvas-container {
   position: absolute;
   top: 0;
@@ -44,8 +56,8 @@ body {
 }
 #main-menu {
   background:
-    linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8)),
-    url("../assets/arcade-racing.jpg");
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.9)),
+    url("https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop");
   background-size: cover;
   background-position: center;
   position: relative;
@@ -71,10 +83,31 @@ body {
   position: relative;
   z-index: 1;
   background: rgba(10, 10, 15, 0.85);
-  border: 2px solid #00ffff;
+  padding: 30px 20px;
+  border-radius: 20px;
+  border: 1px solid #ff5500;
   box-shadow:
-    0 0 20px rgba(0, 255, 255, 0.3),
-    inset 0 0 20px rgba(0, 255, 255, 0.1);
+    0 0 20px rgba(255, 85, 0, 0.3),
+    inset 0 0 20px rgba(255, 85, 0, 0.1);
+  width: 90%;
+  max-width: 400px;
+  max-height: 95vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* Scrollbar styling for menu content */
+.menu-content::-webkit-scrollbar {
+  width: 6px;
+}
+.menu-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+}
+.menu-content::-webkit-scrollbar-thumb {
+  background: #ff5500;
+  border-radius: 10px;
 }
 #garage-menu {
   background: linear-gradient(
@@ -103,48 +136,52 @@ body {
 }
 .menu-content {
   background: rgba(20, 20, 20, 0.9);
-  padding: 40px;
+  padding: 30px 20px;
   border-radius: 20px;
-  border: 1px solid #333;
+  border: 1px solid #ff5500;
   text-align: center;
   color: white;
-  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
-  max-width: 90%;
-  max-height: 90vh;
+  box-shadow: 0 0 30px rgba(255, 85, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
+  max-height: 95vh;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 @keyframes pulseLogo {
   0% {
     transform: scale(1);
     text-shadow:
-      0 0 10px #00ffff,
-      0 0 20px #00ffff;
+      0 0 10px #ff5500,
+      0 0 20px #ff5500;
   }
   50% {
     transform: scale(1.05);
     text-shadow:
-      0 0 30px #00ffff,
-      0 0 40px #00ffff;
+      0 0 30px #ff5500,
+      0 0 40px #ff5500;
   }
   100% {
     transform: scale(1);
     text-shadow:
-      0 0 10px #00ffff,
-      0 0 20px #00ffff;
+      0 0 10px #ff5500,
+      0 0 20px #ff5500;
   }
 }
 @keyframes pulseBtn {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+    box-shadow: 0 0 15px rgba(255, 85, 0, 0.6);
   }
   50% {
     transform: scale(1.05);
-    box-shadow: 0 0 25px rgba(0, 255, 255, 1);
+    box-shadow: 0 0 25px rgba(255, 85, 0, 1);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+    box-shadow: 0 0 15px rgba(255, 85, 0, 0.6);
   }
 }
 #btn-start {
@@ -152,35 +189,39 @@ body {
   font-size: 1.5rem;
   padding: 20px 40px;
   margin-bottom: 20px;
+  width: 100%;
 }
 #btn-start:hover {
   animation: none;
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 h1 {
-  font-size: 3.5rem;
+  font-size: 3rem;
   font-style: italic;
   color: #fff;
   text-transform: uppercase;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   text-shadow:
-    0 0 10px #00ffff,
-    0 0 20px #00ffff;
+    0 0 10px #ff5500,
+    0 0 20px #ff5500;
   animation: pulseLogo 2s infinite ease-in-out;
   letter-spacing: 2px;
+  line-height: 1.1;
 }
 h2 {
   font-size: 2rem;
   color: white;
   margin-bottom: 20px;
-  text-shadow: 0 0 10px #00ffff;
+  text-shadow: 0 0 10px #ff5500;
 }
 .stats {
   display: flex;
   justify-content: space-around;
-  margin-bottom: 30px;
-  font-size: 1.2rem;
+  width: 100%;
+  margin-bottom: 20px;
+  font-size: 1.1rem;
   color: #ffd700;
+  font-weight: bold;
 }
 .level-selector {
   display: flex;
@@ -253,7 +294,7 @@ button {
   cursor: pointer;
   transition: all 0.2s;
   border: 2px solid transparent;
-  margin: 10px;
+  margin: 5px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -261,26 +302,26 @@ button:active {
   transform: scale(0.95);
 }
 .primary-btn {
-  background: #00ffff;
-  color: #000;
-  border-color: #00ffff;
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+  background: #ff5500;
+  color: #fff;
+  border-color: #ff5500;
+  box-shadow: 0 0 15px rgba(255, 85, 0, 0.6);
 }
 .primary-btn:hover {
   background: transparent;
-  color: #00ffff;
-  box-shadow: 0 0 25px rgba(0, 255, 255, 0.8);
+  color: #ff5500;
+  box-shadow: 0 0 25px rgba(255, 85, 0, 0.8);
 }
 .secondary-btn {
   background: transparent;
-  color: #00ffff;
-  border-color: #00ffff;
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+  color: #ff5500;
+  border-color: #ff5500;
+  box-shadow: 0 0 10px rgba(255, 85, 0, 0.4);
 }
 .secondary-btn:hover {
-  background: #00ffff;
-  color: #000;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+  background: #ff5500;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(255, 85, 0, 0.8);
 }
 .danger-btn {
   background: transparent;

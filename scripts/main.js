@@ -357,8 +357,8 @@ document.addEventListener("DOMContentLoaded", () => {
         btnSelect.style.color = "#fff";
       } else {
         btnSelect.innerText = "SELECT";
-        btnSelect.style.background = "#00ffff";
-        btnSelect.style.color = "#000";
+        btnSelect.style.background = "#ff5500";
+        btnSelect.style.color = "#fff";
       }
 
       // Update upgrade UI
@@ -512,7 +512,8 @@ document.addEventListener("DOMContentLoaded", () => {
     { title: "CONTROLS", text: "Use the left and right buttons to steer your car.", anim: "◀ ▶" },
     { title: "SPEED", text: "Use the up and down buttons to accelerate and brake.", anim: "▲ ▼" },
     { title: "COINS", text: "Collect coins to buy and upgrade cars in the garage.", anim: "🪙" },
-    { title: "BOOST", text: "Collect blue energy orbs to fill your boost meter!", anim: "⚡" }
+    { title: "BOOST", text: "Collect blue energy orbs to fill your boost meter!", anim: "⚡" },
+    { title: "MAGNET", text: "Collect red rings to attract nearby coins!", anim: "🧲" }
   ];
   let currentTutorialStep = 0;
   let tutorialCallback = null;
@@ -579,7 +580,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateMenuStats();
       updateDailyRewardUI();
       engine.audio.playCoin();
-      alert("You claimed 500 coins!");
+      showModal("Daily Reward", "You claimed 500 coins!", false);
     }
   });
 

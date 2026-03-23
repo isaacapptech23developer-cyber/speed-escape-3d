@@ -8,6 +8,7 @@ export class EntityManager {
         this.obstacles = [];
         this.coins = [];
         this.boosters = [];
+        this.magnets = [];
         this.traffic = [];
         
         this.obsGeom = new THREE.BoxGeometry(2, 1.5, 4);
@@ -31,9 +32,19 @@ export class EntityManager {
             emissiveIntensity: 0.8
         });
 
+        this.magnetGeom = new THREE.TorusGeometry(0.6, 0.2, 8, 16, Math.PI);
+        this.magnetMat = new THREE.MeshStandardMaterial({
+            color: 0xff0000,
+            metalness: 0.8,
+            roughness: 0.2,
+            emissive: 0xff0000,
+            emissiveIntensity: 0.8
+        });
+
         this.obsMat.onBeforeCompile = onBeforeCompileCurve;
         this.coinMat.onBeforeCompile = onBeforeCompileCurve;
         this.boosterMat.onBeforeCompile = onBeforeCompileCurve;
+        this.magnetMat.onBeforeCompile = onBeforeCompileCurve;
 
         this.lanes = [-5.33, 0, 5.33];
         this.lastSpawnZ = -200;
@@ -61,7 +72,8 @@ export class EntityManager {
             let obsChance = this.relaxedMode ? 0 : 0.2 + (effectiveLevel * 0.05); // Reduced obstacle chance
             let trafficChance = this.relaxedMode ? 0 : obsChance + 0.15; // Traffic chance
             let coinChance = this.relaxedMode ? 0.7 : trafficChance + 0.3;
-            let boosterChance = this.relaxedMode ? 1.0 : coinChance + 0.1; 
+            let boosterChance = this.relaxedMode ? 0.9 : coinChance + 0.08; 
+            let magnetChance = this.relaxedMode ? 1.0 : boosterChance + 0.02; // 2% chance for magnet
             
             if (r < obsChance) {
                 this.spawnObstacle();
@@ -71,6 +83,8 @@ export class EntityManager {
                 this.spawnCoin();
             } else if (r < boosterChance) {
                 this.spawnBooster();
+            } else if (r < magnetChance) {
+                this.spawnMagnet();
             }
             
             // Safe gap
@@ -205,6 +219,23 @@ export class EntityManager {
         booster.visible = true;
     }
 
+    spawnMagnet() {
+        let magnet = this.magnets.find(m => !m.visible);
+        if (!magnet) {
+            magnet = new THREE.Mesh(this.magnetGeom, this.magnetMat);
+            
+            const light = new THREE.PointLight(0xff0000, 0.8, 4);
+            magnet.add(light);
+            
+            this.scene.add(magnet);
+            this.magnets.push(magnet);
+        }
+        
+        const lane = this.lanes[Math.floor(Math.random() * this.lanes.length)];
+        magnet.position.set(lane, 1.0, this.lastSpawnZ);
+        magnet.visible = true;
+    }
+
     clearNearbyObstacles(playerZ) {
         const safeDistance = 100; // Clear obstacles within 100 units ahead
         
@@ -243,6 +274,17 @@ export class EntityManager {
             }
         });
 
+        // Rotate magnets
+        this.magnets.forEach(magnet => {
+            if (magnet.visible) {
+                magnet.rotation.y += 3 * dt;
+                magnet.rotation.z += 2 * dt;
+                if (magnet.position.z > playerZ + 10) {
+                    magnet.visible = false;
+                }
+            }
+        });
+
         // Hide passed obstacles
         this.obstacles.forEach(obs => {
             if (obs.visible && obs.position.z > playerZ + 10) {
@@ -265,6 +307,7 @@ export class EntityManager {
         this.obstacles.forEach(o => o.visible = false);
         this.coins.forEach(c => c.visible = false);
         this.boosters.forEach(b => b.visible = false);
+        this.magnets.forEach(m => m.visible = false);
         this.traffic.forEach(t => t.visible = false);
         this.lastSpawnZ = -200; // No obstacles at the beginning
         this.relaxedMode = false;

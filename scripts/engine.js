@@ -115,8 +115,10 @@ export class GameEngine {
         
         this.isBoosting = false;
         this.boostTimer = 0;
-        this.boostCharge = 0;
         this.maxBoostCharge = 100;
+        this.boostCharge = this.maxBoostCharge;
+        this.isMagnetActive = false;
+        this.magnetTimer = 0;
         this.isScreeching = false;
         this.hasContinued = false;
         
@@ -186,6 +188,9 @@ export class GameEngine {
         this.state = 'countdown';
         this.speed = this.baseSpeed;
         this.hasContinued = true;
+        this.boostCharge = this.maxBoostCharge;
+        this.isBoosting = false;
+        this.isMagnetActive = false;
         this.audio.startEngine();
         this.audio.playBGM();
         
@@ -209,6 +214,7 @@ export class GameEngine {
         if (e.key === 'ArrowUp' || e.key === 'w') this.keys.up = true;
         if (e.key === 'ArrowDown' || e.key === 's') this.keys.down = true;
         if (e.key === 'h' || e.key === 'H' || e.key === ' ') this.audio.playHorn();
+        if (e.key === 'Shift' || e.key === 'b' || e.key === 'B') this.activateBoost();
     }
 
     onKeyUp(e) {
@@ -302,9 +308,31 @@ export class GameEngine {
             }
         }
 
+        // Magnet logic
+        if (this.isMagnetActive) {
+            this.magnetTimer -= dt;
+            if (this.magnetTimer <= 0) {
+                this.isMagnetActive = false;
+                const magnetAura = this.player.getObjectByName('magnetAura');
+                if (magnetAura) this.player.remove(magnetAura);
+            } else {
+                // Pull coins towards player
+                const pullRadius = 15;
+                const pullSpeed = 30;
+                for (let coin of this.entities.coins) {
+                    if (!coin.visible) continue;
+                    const dist = coin.position.distanceTo(this.player.position);
+                    if (dist < pullRadius) {
+                        const dir = new THREE.Vector3().subVectors(this.player.position, coin.position).normalize();
+                        coin.position.add(dir.multiplyScalar(pullSpeed * dt));
+                    }
+                }
+            }
+        }
+
         // Acceleration
         let targetSpeed = 0;
-        if (this.keys.up) {
+        if (this.keys.up || this.isBoosting) {
             targetSpeed = this.baseSpeed + (Math.abs(this.playerZ) / 200);
             if (this.isBoosting) targetSpeed += 50 + (this.carStats.boost * 15);
         } else if (this.keys.down) {
@@ -484,6 +512,33 @@ export class GameEngine {
                 booster.visible = false;
                 this.activateBoost(true);
             }
+        }
+
+        // Magnets
+        for (let magnet of this.entities.magnets) {
+            if (!magnet.visible) continue;
+            const magnetBox = new THREE.Box3().setFromObject(magnet);
+            if (carBox.intersectsBox(magnetBox)) {
+                magnet.visible = false;
+                this.activateMagnet();
+            }
+        }
+    }
+
+    activateMagnet() {
+        this.isMagnetActive = true;
+        this.magnetTimer = 10; // 10 seconds duration
+        this.audio.playCoin(); // Play a sound for magnet pickup
+        
+        // Add visual aura effect
+        if (!this.player.getObjectByName('magnetAura')) {
+            const auraGeom = new THREE.TorusGeometry(1.5, 0.1, 8, 32);
+            const auraMat = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5 });
+            const aura = new THREE.Mesh(auraGeom, auraMat);
+            aura.name = 'magnetAura';
+            aura.rotation.x = Math.PI / 2;
+            aura.position.y = 0.5;
+            this.player.add(aura);
         }
     }
 

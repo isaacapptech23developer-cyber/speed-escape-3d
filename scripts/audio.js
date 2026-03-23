@@ -146,46 +146,28 @@ export class AudioManager {
         
         if (this.engineOsc) this.stopEngine();
 
+        // Use a low-frequency sine wave for a smooth, non-irritating hum
         this.engineOsc = this.ctx.createOscillator();
-        this.engineOsc2 = this.ctx.createOscillator();
         this.engineGain = this.ctx.createGain();
         
-        this.engineOsc.type = 'sawtooth';
-        this.engineOsc.frequency.setValueAtTime(40, this.ctx.currentTime); // Idle frequency
+        this.engineOsc.type = 'sine';
+        this.engineOsc.frequency.setValueAtTime(60, this.ctx.currentTime); // Low hum
         
-        this.engineOsc2.type = 'square';
-        this.engineOsc2.frequency.setValueAtTime(20, this.ctx.currentTime); // Sub-oscillator for rumble
+        this.engineGain.gain.setValueAtTime(0.05, this.ctx.currentTime);
         
-        this.engineGain.gain.setValueAtTime(0.01, this.ctx.currentTime);
-        
-        // Add a lowpass filter that opens up with speed
-        this.engineFilter = this.ctx.createBiquadFilter();
-        this.engineFilter.type = 'lowpass';
-        this.engineFilter.frequency.setValueAtTime(120, this.ctx.currentTime);
-        this.engineFilter.Q.setValueAtTime(2, this.ctx.currentTime); // Add some resonance
-        
-        this.engineOsc.connect(this.engineFilter);
-        this.engineOsc2.connect(this.engineFilter);
-        this.engineFilter.connect(this.engineGain);
+        this.engineOsc.connect(this.engineGain);
         this.engineGain.connect(this.ctx.destination);
         
         this.engineOsc.start();
-        this.engineOsc2.start();
     }
 
     updateEngineSpeed(speedRatio) {
-        if (this.enabled && this.engineOsc && this.engineGain && this.engineFilter) {
-            // Adjust frequency, filter, and volume based on speed
-            const targetFreq = 40 + (speedRatio * 150); // 40Hz to 190Hz
-            const targetFreq2 = 20 + (speedRatio * 75); // 20Hz to 95Hz
-            const targetVol = 0.01 + (speedRatio * 0.04); // 0.01 to 0.05
-            const targetFilterFreq = 120 + (speedRatio * 800); // Filter opens up as speed increases
+        if (this.enabled && this.engineOsc && this.engineGain) {
+            // Smoothly increase pitch and volume slightly
+            const targetFreq = 60 + (speedRatio * 100); // 60Hz to 160Hz
+            const targetVol = 0.05 + (speedRatio * 0.05); // 0.05 to 0.10
             
             this.engineOsc.frequency.setTargetAtTime(targetFreq, this.ctx.currentTime, 0.1);
-            if (this.engineOsc2) {
-                this.engineOsc2.frequency.setTargetAtTime(targetFreq2, this.ctx.currentTime, 0.1);
-            }
-            this.engineFilter.frequency.setTargetAtTime(targetFilterFreq, this.ctx.currentTime, 0.1);
             this.engineGain.gain.setTargetAtTime(targetVol, this.ctx.currentTime, 0.1);
         }
     }
@@ -199,20 +181,11 @@ export class AudioManager {
                     this.engineOsc.disconnect();
                     this.engineOsc = null;
                 }
-                if (this.engineOsc2) {
-                    this.engineOsc2.stop();
-                    this.engineOsc2.disconnect();
-                    this.engineOsc2 = null;
-                }
-                if (this.engineFilter) {
-                    this.engineFilter.disconnect();
-                    this.engineFilter = null;
-                }
                 if (this.engineGain) {
                     this.engineGain.disconnect();
                     this.engineGain = null;
                 }
-            }, 200);
+            }, 100);
         }
     }
 
