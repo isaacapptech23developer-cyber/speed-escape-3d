@@ -259,12 +259,12 @@ export class GameEngine {
             this.player.rotation.y += dt * 0.5;
             // Position camera for garage view
             const aspect = window.innerWidth / window.innerHeight;
-            // If portrait, look slightly lower so the car appears higher up, avoiding the UI
-            const yOffset = aspect < 1 ? -1.0 : 0.5; 
-            const zOffset = aspect < 1 ? 6.0 : 4.5;
-            const xOffset = aspect < 1 ? 0 : 3.5; // Center horizontally on portrait
+            // In landscape, UI is on the right, so center car on the left
+            const yOffset = 0.5; 
+            const zOffset = 5.0;
+            const xOffset = -2.0; // Move car to the left
             this.camera.position.set(this.playerX + xOffset, 2.5, this.playerZ + zOffset);
-            this.camera.lookAt(this.playerX, yOffset, this.playerZ);
+            this.camera.lookAt(this.playerX + xOffset, yOffset, this.playerZ);
         } else if (this.state === 'menu') {
             // Subtle moving background for menu
             this.playerZ -= 5 * dt;

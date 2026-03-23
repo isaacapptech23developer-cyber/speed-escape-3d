@@ -295,9 +295,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let displayStr = `SELECT LEVEL: ${selectedLevel} (${levelName})`;
     if (selectedLevel >= 5) {
-      displayStr += " 🔒 (Under Dev)";
+      displayStr += " [LOCKED] (Under Dev)";
     } else if (selectedLevel > unlockedLevels) {
-      displayStr += " 🔒";
+      displayStr += " [LOCKED]";
     }
     document.getElementById("btn-select-level").innerText = displayStr;
     
@@ -326,7 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div style="width: 30px; height: 15px; background-color: ${colorHex}; border-radius: 4px; border: 1px solid #fff; margin-bottom: 5px; box-shadow: 0 0 10px ${colorHex};"></div>
                 <div class="preview-name">${c.name}</div>
                 ${isSelected ? '<div style="position: absolute; top: 2px; right: 5px; color: #00ffff; font-size: 0.8rem;">✓</div>' : ""}
-                ${!isUnlocked ? '<div style="position: absolute; top: 2px; right: 5px; color: #ff0000; font-size: 0.8rem;">🔒</div>' : ""}
+                ${!isUnlocked ? '<div style="position: absolute; top: 2px; right: 5px; color: #ff0000; font-size: 0.8rem;">[LOCKED]</div>' : ""}
             `;
       div.addEventListener("click", () => {
         currentCarIndex = index;
@@ -508,12 +508,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const tutorialSteps = [
-    { title: "WELCOME", text: "Drive as far as you can and avoid obstacles!", anim: "🚗" },
-    { title: "CONTROLS", text: "Use the left and right buttons to steer your car.", anim: "◀ ▶" },
-    { title: "SPEED", text: "Use the up and down buttons to accelerate and brake.", anim: "▲ ▼" },
-    { title: "COINS", text: "Collect coins to buy and upgrade cars in the garage.", anim: "🪙" },
-    { title: "BOOST", text: "Collect blue energy orbs to fill your boost meter!", anim: "⚡" },
-    { title: "MAGNET", text: "Collect red rings to attract nearby coins!", anim: "🧲" }
+    { title: "WELCOME", text: "Drive as far as you can and avoid obstacles!", anim: "GO!" },
+    { title: "CONTROLS", text: "Use the left and right buttons to steer your car.", anim: "L / R" },
+    { title: "SPEED", text: "Use the up and down buttons to accelerate and brake.", anim: "F / B" },
+    { title: "COINS", text: "Collect coins to buy and upgrade cars in the garage.", anim: "COIN" },
+    { title: "BOOST", text: "Collect blue energy orbs to fill your boost meter!", anim: "BOOST" },
+    { title: "MAGNET", text: "Collect red rings to attract nearby coins!", anim: "MAGNET" }
   ];
   let currentTutorialStep = 0;
   let tutorialCallback = null;
@@ -695,7 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (isUnderDev) {
         const lockedIcon = document.createElement("div");
-        lockedIcon.innerText = "🔒 Under Dev";
+        lockedIcon.innerText = "[LOCKED] Under Dev";
         lockedIcon.style.fontSize = "0.7rem";
         lockedIcon.style.color = "#ff5500";
         btn.appendChild(lockedIcon);
@@ -705,7 +705,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (!isUnlocked) {
         const lockedIcon = document.createElement("div");
         let reqCoins = i === 2 ? 100 : (i === 3 ? 150 : 200);
-        lockedIcon.innerText = `🔒 Score ${reqCoins} Coins in Lvl ${i - 1}`;
+        lockedIcon.innerText = `[LOCKED] Score ${reqCoins} Coins in Lvl ${i - 1}`;
         lockedIcon.style.fontSize = "0.6rem";
         lockedIcon.style.color = "#ff0000";
         btn.appendChild(lockedIcon);

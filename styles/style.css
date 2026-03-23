@@ -10,18 +10,6 @@ body {
   overflow: hidden;
   touch-action: none;
 }
-/* Force portrait mode */
-@media screen and (orientation: landscape) {
-  #game-canvas-container, #ui-layer {
-    transform: rotate(-90deg);
-    transform-origin: left top;
-    width: 100vh;
-    height: 100vw;
-    position: absolute;
-    top: 100%;
-    left: 0;
-  }
-}
 #game-canvas-container {
   position: absolute;
   top: 0;
