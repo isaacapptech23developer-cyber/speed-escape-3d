@@ -439,11 +439,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Play BGM on first interaction
+  // Play BGM and request fullscreen on first interaction
   const startBGM = () => {
-    if (engine.state === "menu" || engine.state === "garage") {
+    if (engine.state === "menu" || engine.state === "garage" || engine.state === "playing") {
       engine.audio.playBGM();
     }
+    
+    // Request fullscreen
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(err => console.log(err));
+    } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+      document.documentElement.webkitRequestFullscreen().catch(err => console.log(err));
+    } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+      document.documentElement.msRequestFullscreen().catch(err => console.log(err));
+    }
+
     document.removeEventListener("click", startBGM);
     document.removeEventListener("touchstart", startBGM);
   };
@@ -492,55 +502,10 @@ document.addEventListener("DOMContentLoaded", () => {
     engine.start(selectedLevel, getCarStats(selectedCarId));
     AdMob.hideBanner();
     
-    if (!localStorage.getItem("se3d_tutorial_done")) {
-      showTutorial(() => {
-        showScreen("hud");
-        startCountdown(() => {
-          engine.state = "playing";
-        });
-      });
-    } else {
-      showScreen("hud");
-      startCountdown(() => {
-        engine.state = "playing";
-      });
-    }
-  });
-
-  const tutorialSteps = [
-    { title: "WELCOME", text: "Drive as far as you can and avoid obstacles!", anim: "GO!" },
-    { title: "CONTROLS", text: "Use the left and right buttons to steer your car.", anim: "L / R" },
-    { title: "SPEED", text: "Use the up and down buttons to accelerate and brake.", anim: "F / B" },
-    { title: "COINS", text: "Collect coins to buy and upgrade cars in the garage.", anim: "COIN" },
-    { title: "BOOST", text: "Collect blue energy orbs to fill your boost meter!", anim: "BOOST" },
-    { title: "MAGNET", text: "Collect red rings to attract nearby coins!", anim: "MAGNET" }
-  ];
-  let currentTutorialStep = 0;
-  let tutorialCallback = null;
-
-  function showTutorial(onComplete) {
-    tutorialCallback = onComplete;
-    currentTutorialStep = 0;
-    updateTutorialUI();
-    showScreen("tutorial-overlay");
-  }
-
-  function updateTutorialUI() {
-    const step = tutorialSteps[currentTutorialStep];
-    document.getElementById("tutorial-title").innerText = step.title;
-    document.getElementById("tutorial-text").innerText = step.text;
-    document.getElementById("tutorial-animation").innerText = step.anim;
-    document.getElementById("btn-tutorial-next").innerText = currentTutorialStep === tutorialSteps.length - 1 ? "PLAY" : "NEXT";
-  }
-
-  document.getElementById("btn-tutorial-next").addEventListener("click", () => {
-    currentTutorialStep++;
-    if (currentTutorialStep >= tutorialSteps.length) {
-      localStorage.setItem("se3d_tutorial_done", "true");
-      if (tutorialCallback) tutorialCallback();
-    } else {
-      updateTutorialUI();
-    }
+    showScreen("hud");
+    startCountdown(() => {
+      engine.state = "playing";
+    });
   });
 
   let garageAutoCycleInterval = null;
@@ -983,4 +948,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial Ad
   AdMob.showBanner();
+
+  // Start game automatically
+  document.getElementById("btn-start").click();
 });

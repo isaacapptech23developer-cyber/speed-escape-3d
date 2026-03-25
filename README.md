@@ -1,22 +1,20 @@
-# Speed Escape 3D
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-A high-speed 3D endless runner car game built with Three.js.
+# Run and deploy your AI Studio app
 
-## How to Run the Game
+This contains everything you need to run your app locally.
 
-This project is a static web application and requires no build tools or package managers.
+View your app in AI Studio: https://ai.studio/apps/ad6ba032-0f02-457c-8dc5-bee1f809dc32
 
-### Running in Visual Studio Code (PC/Mac)
-1. Open the project folder in VS Code.
-2. Install the "Live Server" extension.
-3. Right-click `index.html` and select "Open with Live Server".
-4. The game will open in your default browser.
+## Run Locally
 
-### Running in Acode Editor (Android)
-1. Open the project folder in Acode.
-2. Open `index.html`.
-3. Tap the "Play" button (preview server) to run the game directly.
+**Prerequisites:**  Node.js
 
-## Controls
-- **Desktop**: Use `Left Arrow` / `Right Arrow` or `A` / `D` to steer.
-- **Mobile**: Use the on-screen touch controls (Left/Right chevrons) to steer.
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
