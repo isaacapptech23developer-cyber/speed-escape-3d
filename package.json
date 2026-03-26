@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "build": "echo 'No build step required'"
+    "build": "mkdir -p public && cp -r index.html scripts styles assets config sw.js privacy.html terms.html ads.txt public/"
   },
   "dependencies": {
     "@capacitor/android": "^8.2.0",

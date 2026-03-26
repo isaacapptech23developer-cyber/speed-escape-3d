@@ -1,0 +1,6 @@
+node_modules/
+android/
+ios/
+.git/
+package-lock.json
+server.js
