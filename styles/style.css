@@ -5,10 +5,14 @@
   user-select: none;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
-body {
-  background: #000;
+html, body {
+  width: 100vw;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
   touch-action: none;
+  background: #000;
 }
 #game-canvas-container {
   position: absolute;
@@ -620,7 +624,7 @@ button:active {
 }
 .hud-top {
   width: 100%;
-  padding: 20px;
+  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 20px max(20px, env(safe-area-inset-left));
   display: flex;
   justify-content: space-between;
   pointer-events: auto;
@@ -686,30 +690,31 @@ button:active {
 }
 #touch-controls {
   width: 100%;
-  padding: 20px;
+  padding: 20px max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   pointer-events: auto;
-  margin-bottom: 20px;
 }
 .controls-left {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: flex-end;
   gap: 15px;
 }
 .controls-right {
   display: flex;
   flex-direction: row;
+  align-items: flex-end;
   gap: 15px;
 }
 .touch-btn {
-  width: 70px;
-  height: 70px;
+  width: clamp(50px, 12vw, 70px);
+  height: clamp(50px, 12vw, 70px);
   border-radius: 50%;
   background: rgba(0, 255, 255, 0.1);
   color: #00ffff;
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
   backdrop-filter: blur(5px);
   border: 2px solid rgba(0, 255, 255, 0.5);
   display: flex;

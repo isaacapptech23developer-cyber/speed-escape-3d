@@ -9,7 +9,7 @@ const ASSETS_TO_CACHE = [
     './scripts/environment.js?v=5',
     './scripts/entities.js?v=5',
     './scripts/audio.js?v=5',
-    './scripts/admob.js?v=5',
+    './scripts/ads.js?v=5',
     './assets/icons/icon-512.svg',
     './assets/arcade-racing.jpg',
     './privacy.html',
@@ -29,19 +29,22 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        fetch(event.request).then((response) => {
-            // Network first: return network response and cache it
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-                return response;
-            }
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-                cache.put(event.request, responseToCache);
+        caches.match(event.request).then((cachedResponse) => {
+            const fetchPromise = fetch(event.request).then((networkResponse) => {
+                if (networkResponse && networkResponse.status === 200 && (networkResponse.type === 'basic' || networkResponse.type === 'cors')) {
+                    const responseToCache = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, responseToCache);
+                    });
+                }
+                return networkResponse;
+            }).catch((error) => {
+                // Ignore fetch errors in stale-while-revalidate unless there's no cache
+                if (!cachedResponse) throw error;
             });
-            return response;
-        }).catch(() => {
-            // Fallback to cache if network fails
-            return caches.match(event.request);
+
+            // Return the cached response immediately if available, otherwise wait for the network response
+            return cachedResponse || fetchPromise;
         })
     );
 });

@@ -1,5 +1,5 @@
 import { GameEngine } from "./engine.js?v=5";
-import { AdMob } from "./admob.js?v=5";
+import { AdMob } from "./ads.js?v=5";
 
 const CARS = [
   {
@@ -124,7 +124,7 @@ function getCarStats(carId) {
 
 // Settings
 let soundEnabled = localStorage.getItem("se3d_sound") !== "false";
-let graphicsQuality = localStorage.getItem("se3d_graphics") || "HIGH";
+let graphicsQuality = localStorage.getItem("se3d_graphics") || "MEDIUM";
 
 // Daily Challenge Logic
 const DAILY_CHALLENGES = [
@@ -200,6 +200,18 @@ document.addEventListener("DOMContentLoaded", () => {
         boostBar.style.width = `${percentage}%`;
         boostBar.style.background = "#00ffff"; // Charging color
       }
+      
+      const btnBoost = document.getElementById("btn-boost");
+      if (btnBoost) {
+        if (isBoosting || boostCharge < maxBoostCharge) {
+          btnBoost.style.opacity = "0.5";
+          btnBoost.style.pointerEvents = "none";
+        } else {
+          btnBoost.style.opacity = "1";
+          btnBoost.style.pointerEvents = "auto";
+        }
+      }
+      
       wasBoostingLastFrame = isBoosting;
     },
     onGameOver: async (score, coins, hasContinued) => {
@@ -707,6 +719,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("btn-toggle-graphics")
     .addEventListener("click", (e) => {
       if (graphicsQuality === "HIGH") graphicsQuality = "MEDIUM";
+      else if (graphicsQuality === "MEDIUM") graphicsQuality = "LOW";
       else graphicsQuality = "HIGH";
 
       localStorage.setItem("se3d_graphics", graphicsQuality);
@@ -949,6 +962,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initial Ad
   AdMob.showBanner();
 
-  // Start game automatically
-  document.getElementById("btn-start").click();
+  // Check if tutorial has been shown
+  const tutorialShown = localStorage.getItem("se3d_tutorial_shown");
+  if (!tutorialShown) {
+    showScreen("tutorial-overlay");
+    document.getElementById("btn-tutorial-start").addEventListener("click", () => {
+      localStorage.setItem("se3d_tutorial_shown", "true");
+      showScreen("main-menu");
+    });
+  } else {
+    showScreen("main-menu");
+  }
 });

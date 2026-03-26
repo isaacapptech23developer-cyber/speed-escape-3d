@@ -14,7 +14,7 @@ export class GameEngine {
         this.scene.fog = new THREE.Fog(0x87ceeb, 50, 150);
 
         const aspect = window.innerWidth / window.innerHeight;
-        this.camera = new THREE.PerspectiveCamera(aspect < 1 ? 80 : 60, aspect, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(this.calculateFOV(aspect), aspect, 0.1, 1000);
         
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -70,12 +70,18 @@ export class GameEngine {
             this.dirLight.castShadow = true;
             this.scene.fog.near = 50;
             this.scene.fog.far = 150;
-        } else { // MEDIUM
+        } else if (quality === 'MEDIUM') {
             this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
             this.renderer.shadowMap.enabled = true;
             this.dirLight.castShadow = true;
             this.scene.fog.near = 40;
             this.scene.fog.far = 100;
+        } else { // LOW
+            this.renderer.setPixelRatio(1.0);
+            this.renderer.shadowMap.enabled = false;
+            this.dirLight.castShadow = false;
+            this.scene.fog.near = 30;
+            this.scene.fog.far = 80;
         }
     }
 
@@ -127,7 +133,7 @@ export class GameEngine {
         
         // Reset camera immediately
         const aspect = window.innerWidth / window.innerHeight;
-        const camOffset = aspect < 1 ? new THREE.Vector3(0, 6, 12) : new THREE.Vector3(0, 4, 8);
+        const camOffset = this.getCamOffset(aspect);
         this.camera.position.set(0, camOffset.y, camOffset.z);
         this.camera.lookAt(0, 0, -10);
         
@@ -231,10 +237,40 @@ export class GameEngine {
         if (dir === 'down') this.keys.down = active;
     }
 
+    getCamOffset(aspect) {
+        if (aspect < 1) return new THREE.Vector3(0, 6, 12);
+        if (aspect > 2.2) return new THREE.Vector3(0, 4.5, 9);
+        return new THREE.Vector3(0, 4, 8);
+    }
+
+    calculateFOV(aspect) {
+        // Base FOV for 16:9
+        const baseFOV = 60;
+        const baseAspect = 16 / 9;
+        
+        if (aspect < 1) {
+            // Portrait
+            return 80;
+        } else if (aspect < baseAspect) {
+            // Tablets (e.g. 4:3)
+            // Scale FOV up slightly to ensure road width is visible
+            const multiplier = baseAspect / aspect;
+            return Math.min(baseFOV * multiplier, 75);
+        } else if (aspect > 2.2) {
+            // Ultra-wide phones
+            return 75;
+        } else if (aspect > 1.8) {
+            // Wide phones
+            return 70;
+        }
+        
+        return baseFOV;
+    }
+
     onResize() {
         const aspect = window.innerWidth / window.innerHeight;
         this.camera.aspect = aspect;
-        this.camera.fov = aspect < 1 ? 80 : 60;
+        this.camera.fov = this.calculateFOV(aspect);
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(window.innerWidth, window.innerHeight);
     }
@@ -251,7 +287,7 @@ export class GameEngine {
         } else if (this.state === 'countdown') {
             // Keep camera fixed behind car during countdown
             const aspect = window.innerWidth / window.innerHeight;
-            const camOffset = aspect < 1 ? new THREE.Vector3(0, 6, 12) : new THREE.Vector3(0, 4, 8);
+            const camOffset = this.getCamOffset(aspect);
             this.camera.position.set(this.playerX * 0.5, this.player.position.y + camOffset.y, this.playerZ + camOffset.z);
             this.camera.lookAt(this.player.position.x, this.player.position.y, this.player.position.z - 10);
         } else if (this.state === 'garage') {
@@ -272,7 +308,7 @@ export class GameEngine {
             
             // Camera pan
             const aspect = window.innerWidth / window.innerHeight;
-            const camOffset = aspect < 1 ? new THREE.Vector3(0, 6, 12) : new THREE.Vector3(0, 4, 8);
+            const camOffset = this.getCamOffset(aspect);
             this.camera.position.set(Math.sin(performance.now() * 0.0005) * 2, this.player.position.y + camOffset.y, this.playerZ + camOffset.z);
             this.camera.lookAt(0, 0, this.playerZ - 10);
         }
@@ -402,7 +438,7 @@ export class GameEngine {
 
         // Camera
         const aspect = window.innerWidth / window.innerHeight;
-        const camOffset = aspect < 1 ? new THREE.Vector3(0, 6, 12) : new THREE.Vector3(0, 4, 8);
+        const camOffset = this.getCamOffset(aspect);
         const targetCamPos = new THREE.Vector3(this.playerX * 0.5, this.player.position.y + camOffset.y, this.playerZ + camOffset.z);
         
         this.camera.position.lerp(targetCamPos, dt * 5);

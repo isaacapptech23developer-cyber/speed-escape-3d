@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>Speed Escape 3D</title>
 
@@ -336,6 +336,30 @@
           <h2>PAUSED</h2>
           <button id="btn-resume" class="primary-btn">RESUME</button>
           <button id="btn-quit" class="secondary-btn">QUIT</button>
+        </div>
+      </div>
+
+      <!-- Tutorial Overlay -->
+      <div id="tutorial-overlay" class="screen" style="z-index: 150;">
+        <div class="menu-content" style="max-width: 500px;">
+          <h2 style="color: #00ffff; margin-bottom: 20px;">HOW TO PLAY</h2>
+          
+          <div style="text-align: left; margin-bottom: 20px; font-size: 1.1rem; line-height: 1.6;">
+            <p style="margin-bottom: 15px;">
+              <strong style="color: #ff5500;">OBJECTIVE:</strong> Drive as far as possible without crashing into obstacles. Collect coins to unlock new cars and upgrades!
+            </p>
+            <p style="margin-bottom: 15px;">
+              <strong style="color: #ff5500;">CONTROLS:</strong><br>
+              • Tap the <strong>Left</strong> and <strong>Right</strong> arrows to steer.<br>
+              • Use the <strong>Horn</strong> to warn other drivers.<br>
+            </p>
+            <p>
+              <strong style="color: #ff5500;">BOOST:</strong><br>
+              • Tap the <strong>Boost</strong> button when the meter is full for a speed burst and invincibility!
+            </p>
+          </div>
+
+          <button id="btn-tutorial-start" class="primary-btn" style="width: 100%; padding: 15px; font-size: 1.2rem; background: #00ffff; color: #000;">START GAME</button>
         </div>
       </div>
 
