@@ -19,6 +19,11 @@
     />
     <meta name="author" content="Isaac Simiyu" />
 
+    <!-- Cache Control -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <!-- Open Graph / Social Media -->
     <meta property="og:title" content="Speed Escape 3D" />
     <meta
@@ -33,14 +38,7 @@
     <meta name="theme-color" content="#ff5500" />
     <link rel="apple-touch-icon" href="./assets/icons/icon-512.svg" />
 
-    <link rel="stylesheet" href="./styles/style.css?v=5" />
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-        }
-      }
-    </script>
+    <link rel="stylesheet" href="./styles/style.css?v=9" />
   </head>
   <body>
     <!-- Rotate Device Overlay -->
@@ -253,9 +251,6 @@
           <div class="score-board">
             <div id="hud-score">Score: 0</div>
             <div id="hud-coins">Coins: 0</div>
-            <div id="hud-boost-container" class="hidden">
-              <div id="hud-boost-bar"></div>
-            </div>
           </div>
           <button id="btn-pause" class="icon-btn" style="display: flex; align-items: center; justify-content: center;">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -263,6 +258,13 @@
               <rect x="14" y="4" width="4" height="16"></rect>
             </svg>
           </button>
+        </div>
+        
+        <!-- Power-ups HUD -->
+        <div id="powerups-hud" style="position: absolute; top: 70px; left: 20px; display: flex; flex-direction: column; gap: 5px; pointer-events: none;">
+          <div id="hud-pu-magnet" class="hidden" style="background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 15px; color: #ff0000; font-weight: bold; font-size: 0.9rem; border: 1px solid #ff0000; text-shadow: 1px 1px 2px #000;">🧲 Magnet: <span id="hud-pu-magnet-time">0</span>s</div>
+          <div id="hud-pu-shield" class="hidden" style="background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 15px; color: #00ff00; font-weight: bold; font-size: 0.9rem; border: 1px solid #00ff00; text-shadow: 1px 1px 2px #000;">🛡️ Shield: <span id="hud-pu-shield-time">0</span>s</div>
+          <div id="hud-pu-multiplier" class="hidden" style="background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 15px; color: #ffaa00; font-weight: bold; font-size: 0.9rem; border: 1px solid #ffaa00; text-shadow: 1px 1px 2px #000;">⭐ 2x Score: <span id="hud-pu-multiplier-time">0</span>s</div>
         </div>
         <div id="touch-controls">
           <div class="controls-left" style="flex-direction: row; align-items: flex-end;">
@@ -293,6 +295,9 @@
           </div>
           <div class="controls-right" style="flex-direction: row; align-items: flex-end;">
             <div style="display: flex; flex-direction: column; align-items: center; margin-right: 15px;">
+              <div id="hud-boost-container" style="width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; margin-bottom: 5px; overflow: hidden; box-shadow: 0 0 5px rgba(0,255,255,0.3);">
+                <div id="hud-boost-bar" style="width: 100%; height: 100%; background: #00ffff; transform-origin: left; transform: scaleX(0); transition: transform 0.1s linear, background-color 0.2s; box-shadow: 0 0 10px #00ffff;"></div>
+              </div>
               <button id="btn-boost" class="touch-btn" style="border-radius: 50%; background: rgba(255, 0, 255, 0.2); border: 2px solid #ff00ff; color: #ff00ff; display: flex; align-items: center; justify-content: center;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
@@ -355,7 +360,9 @@
             </p>
             <p>
               <strong style="color: #ff5500;">BOOST:</strong><br>
-              • Tap the <strong>Boost</strong> button when the meter is full for a speed burst and invincibility!
+              • The boost meter fills over time.<br>
+              • Tap the <strong>Boost</strong> button when full for a speed burst and invincibility!<br>
+              • Collect blue orbs to instantly activate boost!
             </p>
           </div>
 
@@ -381,12 +388,29 @@
       </div>
     </div>
 
-    <script type="module" src="./scripts/main.js?v=5"></script>
+    <script src="./bundle.js?v=9"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("./sw.js").catch((err) => {
+          navigator.serviceWorker.register("./sw.js").then(reg => {
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // New update available
+                  window.location.reload();
+                }
+              });
+            });
+          }).catch((err) => {
             console.log("ServiceWorker registration failed: ", err);
+          });
+
+          let refreshing;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
           });
         });
       }

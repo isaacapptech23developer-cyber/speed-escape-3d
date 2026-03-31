@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { createCarMesh } from './car.js?v=5';
-import { Environment } from './environment.js?v=5';
-import { EntityManager } from './entities.js?v=5';
-import { AudioManager } from './audio.js?v=5';
+import { createCarMesh } from './car.js?v=9';
+import { Environment } from './environment.js?v=9';
+import { EntityManager } from './entities.js?v=9';
+import { AudioManager } from './audio.js?v=9';
 
 export class GameEngine {
     constructor(container, callbacks) {
@@ -16,7 +16,7 @@ export class GameEngine {
         const aspect = window.innerWidth / window.innerHeight;
         this.camera = new THREE.PerspectiveCamera(this.calculateFOV(aspect), aspect, 0.1, 1000);
         
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "low-power", precision: "mediump" });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -56,28 +56,33 @@ export class GameEngine {
         this.keys = { left: false, right: false, up: false, down: false };
 
         window.addEventListener('resize', () => this.onResize());
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => this.onResize(), 100);
+            setTimeout(() => this.onResize(), 500);
+        });
         window.addEventListener('keydown', (e) => this.onKeyDown(e));
         window.addEventListener('keyup', (e) => this.onKeyUp(e));
 
         this.lastTime = performance.now();
+        this.onResize();
         this.animate();
     }
 
     setGraphicsQuality(quality) {
         if (quality === 'HIGH') {
-            this.renderer.setPixelRatio(window.devicePixelRatio);
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
             this.renderer.shadowMap.enabled = true;
             this.dirLight.castShadow = true;
             this.scene.fog.near = 50;
             this.scene.fog.far = 150;
         } else if (quality === 'MEDIUM') {
-            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+            this.renderer.setPixelRatio(1.0);
             this.renderer.shadowMap.enabled = true;
             this.dirLight.castShadow = true;
             this.scene.fog.near = 40;
             this.scene.fog.far = 100;
         } else { // LOW
-            this.renderer.setPixelRatio(1.0);
+            this.renderer.setPixelRatio(0.75);
             this.renderer.shadowMap.enabled = false;
             this.dirLight.castShadow = false;
             this.scene.fog.near = 30;
@@ -125,8 +130,24 @@ export class GameEngine {
         this.boostCharge = this.maxBoostCharge;
         this.isMagnetActive = false;
         this.magnetTimer = 0;
+        this.isShieldActive = false;
+        this.shieldTimer = 0;
+        this.isMultiplierActive = false;
+        this.multiplierTimer = 0;
         this.isScreeching = false;
         this.hasContinued = false;
+        
+        const shieldAura = this.player.getObjectByName('shieldAura');
+        if (shieldAura) this.player.remove(shieldAura);
+        
+        const multiplierAura = this.player.getObjectByName('multiplierAura');
+        if (multiplierAura) this.player.remove(multiplierAura);
+        
+        const magnetAura = this.player.getObjectByName('magnetAura');
+        if (magnetAura) this.player.remove(magnetAura);
+        
+        const spark = this.player.getObjectByName('spark');
+        if (spark) this.player.remove(spark);
         
         this.player.position.set(0, 0, 0);
         this.player.rotation.set(0, 0, 0);
@@ -197,6 +218,21 @@ export class GameEngine {
         this.boostCharge = this.maxBoostCharge;
         this.isBoosting = false;
         this.isMagnetActive = false;
+        this.isShieldActive = false;
+        this.isMultiplierActive = false;
+        
+        const shieldAura = this.player.getObjectByName('shieldAura');
+        if (shieldAura) this.player.remove(shieldAura);
+        
+        const multiplierAura = this.player.getObjectByName('multiplierAura');
+        if (multiplierAura) this.player.remove(multiplierAura);
+
+        const magnetAura = this.player.getObjectByName('magnetAura');
+        if (magnetAura) this.player.remove(magnetAura);
+
+        const spark = this.player.getObjectByName('spark');
+        if (spark) this.player.remove(spark);
+
         this.audio.startEngine();
         this.audio.playBGM();
         
@@ -366,6 +402,26 @@ export class GameEngine {
             }
         }
 
+        // Shield logic
+        if (this.isShieldActive) {
+            this.shieldTimer -= dt;
+            if (this.shieldTimer <= 0) {
+                this.isShieldActive = false;
+                const shieldAura = this.player.getObjectByName('shieldAura');
+                if (shieldAura) this.player.remove(shieldAura);
+            }
+        }
+
+        // Multiplier logic
+        if (this.isMultiplierActive) {
+            this.multiplierTimer -= dt;
+            if (this.multiplierTimer <= 0) {
+                this.isMultiplierActive = false;
+                const multiplierAura = this.player.getObjectByName('multiplierAura');
+                if (multiplierAura) this.player.remove(multiplierAura);
+            }
+        }
+
         // Acceleration
         let targetSpeed = 0;
         if (this.keys.up || this.isBoosting) {
@@ -391,7 +447,8 @@ export class GameEngine {
         
         // Only increase score if moving forward
         if (this.speed > 0) {
-            this.score = Math.floor(Math.abs(this.playerZ));
+            const distanceMoved = this.speed * dt;
+            this.score += distanceMoved * (this.isMultiplierActive ? 2 : 1);
         }
 
         // Steering
@@ -487,7 +544,21 @@ export class GameEngine {
 
         this.checkCollisions();
         const maxBoostTimer = 3 + (this.carStats.boost * 0.5);
-        this.callbacks.onUpdate(this.score, this.coins, this.isBoosting, this.boostTimer, maxBoostTimer, this.boostCharge, this.maxBoostCharge);
+        this.callbacks.onUpdate(
+            Math.floor(this.score), 
+            this.coins, 
+            this.isBoosting, 
+            this.boostTimer, 
+            maxBoostTimer, 
+            this.boostCharge, 
+            this.maxBoostCharge,
+            this.isMagnetActive,
+            this.magnetTimer,
+            this.isShieldActive,
+            this.shieldTimer,
+            this.isMultiplierActive,
+            this.multiplierTimer
+        );
     }
 
     checkCollisions() {
@@ -500,11 +571,11 @@ export class GameEngine {
             if (!obs.visible) continue;
             const obsBox = new THREE.Box3().setFromObject(obs);
             if (carBox.intersectsBox(obsBox)) {
-                if (this.isBoosting) {
-                    // Destroy obstacle if boosting
+                if (this.isBoosting || this.isShieldActive) {
+                    // Destroy obstacle if boosting or shielded
                     obs.visible = false;
                     this.audio.playCrash(); // Play crash sound but don't stop
-                    this.score += 50;
+                    this.score += 50 * (this.isMultiplierActive ? 2 : 1);
                 } else {
                     this.stop();
                     return;
@@ -517,11 +588,11 @@ export class GameEngine {
             if (!car.visible) continue;
             const trafficBox = new THREE.Box3().setFromObject(car);
             if (carBox.intersectsBox(trafficBox)) {
-                if (this.isBoosting) {
-                    // Destroy traffic if boosting
+                if (this.isBoosting || this.isShieldActive) {
+                    // Destroy traffic if boosting or shielded
                     car.visible = false;
                     this.audio.playCrash();
-                    this.score += 100;
+                    this.score += 100 * (this.isMultiplierActive ? 2 : 1);
                 } else {
                     this.stop();
                     return;
@@ -559,6 +630,26 @@ export class GameEngine {
                 this.activateMagnet();
             }
         }
+
+        // Shields
+        for (let shield of this.entities.shields) {
+            if (!shield.visible) continue;
+            const shieldBox = new THREE.Box3().setFromObject(shield);
+            if (carBox.intersectsBox(shieldBox)) {
+                shield.visible = false;
+                this.activateShield();
+            }
+        }
+
+        // Multipliers
+        for (let multiplier of this.entities.multipliers) {
+            if (!multiplier.visible) continue;
+            const multiplierBox = new THREE.Box3().setFromObject(multiplier);
+            if (carBox.intersectsBox(multiplierBox)) {
+                multiplier.visible = false;
+                this.activateMultiplier();
+            }
+        }
     }
 
     activateMagnet() {
@@ -592,6 +683,38 @@ export class GameEngine {
             const spark = new THREE.Mesh(sparkGeom, sparkMat);
             spark.name = 'spark';
             this.player.add(spark);
+        }
+    }
+
+    activateShield() {
+        this.isShieldActive = true;
+        this.shieldTimer = 10; // 10 seconds duration
+        this.audio.playBooster(); // Reusing booster sound for now
+        
+        // Add visual aura effect
+        if (!this.player.getObjectByName('shieldAura')) {
+            const auraGeom = new THREE.SphereGeometry(2.5, 16, 16);
+            const auraMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, transparent: true, opacity: 0.3 });
+            const aura = new THREE.Mesh(auraGeom, auraMat);
+            aura.name = 'shieldAura';
+            this.player.add(aura);
+        }
+    }
+
+    activateMultiplier() {
+        this.isMultiplierActive = true;
+        this.multiplierTimer = 15; // 15 seconds duration
+        this.audio.playCoin(); // Reusing coin sound for now
+        
+        // Add visual aura effect
+        if (!this.player.getObjectByName('multiplierAura')) {
+            const auraGeom = new THREE.TorusGeometry(1.8, 0.05, 8, 24);
+            const auraMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.8 });
+            const aura = new THREE.Mesh(auraGeom, auraMat);
+            aura.name = 'multiplierAura';
+            aura.rotation.x = Math.PI / 2;
+            aura.position.y = 0.2;
+            this.player.add(aura);
         }
     }
 }

@@ -1,5 +1,5 @@
-import { GameEngine } from "./engine.js?v=5";
-import { AdMob } from "./ads.js?v=5";
+import { GameEngine } from "./engine.js?v=9";
+import { AdMob } from "./ads.js?v=9";
 
 const CARS = [
   {
@@ -132,7 +132,12 @@ const DAILY_CHALLENGES = [
   { id: 2, type: "score", target: 1000, reward: 150, desc: "Reach 1000 score in one run" },
   { id: 3, type: "coins", target: 100, reward: 200, desc: "Collect 100 coins in one run" },
   { id: 4, type: "score", target: 2000, reward: 250, desc: "Reach 2000 score in one run" },
-  { id: 5, type: "boost", target: 3, reward: 100, desc: "Use boost 3 times in one run" }
+  { id: 5, type: "boost", target: 3, reward: 100, desc: "Use boost 3 times in one run" },
+  { id: 6, type: "score", target: 3000, reward: 300, desc: "Reach 3000 score in one run" },
+  { id: 7, type: "coins", target: 150, reward: 250, desc: "Collect 150 coins in one run" },
+  { id: 8, type: "boost", target: 5, reward: 200, desc: "Use boost 5 times in one run" },
+  { id: 9, type: "score", target: 5000, reward: 500, desc: "Reach 5000 score in one run" },
+  { id: 10, type: "coins", target: 200, reward: 400, desc: "Collect 200 coins in one run" }
 ];
 
 function getDailyChallenge() {
@@ -145,16 +150,21 @@ function getDailyChallenge() {
   return DAILY_CHALLENGES[index];
 }
 
-const currentChallenge = getDailyChallenge();
-let challengeCompletedToday = localStorage.getItem(`se3d_daily_${new Date().toDateString()}`) === "true";
+function isChallengeCompletedToday() {
+  return localStorage.getItem(`se3d_daily_${new Date().toDateString()}`) === "true";
+}
+
 let currentRunBoostCount = 0;
 let wasBoostingLastFrame = false;
 
 function updateDailyChallengeUI() {
+  const currentChallenge = getDailyChallenge();
+  const completed = isChallengeCompletedToday();
+  
   document.getElementById("daily-challenge-desc").innerText = currentChallenge.desc;
   document.getElementById("daily-challenge-reward").innerText = `Reward: ${currentChallenge.reward} Coins`;
   
-  if (challengeCompletedToday) {
+  if (completed) {
     document.getElementById("daily-challenge-status").style.display = "block";
     document.getElementById("daily-challenge-box").style.borderColor = "#00ff00";
   } else {
@@ -173,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastCoins = 0;
   const container = document.getElementById("game-canvas-container");
   const engine = new GameEngine(container, {
-    onUpdate: (score, coins, isBoosting, boostTimer, maxBoostTimer, boostCharge, maxBoostCharge) => {
+    onUpdate: (score, coins, isBoosting, boostTimer, maxBoostTimer, boostCharge, maxBoostCharge, isMagnetActive, magnetTimer, isShieldActive, shieldTimer, isMultiplierActive, multiplierTimer) => {
       document.getElementById("hud-score").innerText = `Score: ${score}`;
       const coinsEl = document.getElementById("hud-coins");
       if (coins > lastCoins) {
@@ -185,20 +195,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const boostContainer = document.getElementById("hud-boost-container");
       const boostBar = document.getElementById("hud-boost-bar");
-      boostContainer.classList.remove("hidden");
+      if (boostContainer) boostContainer.classList.remove("hidden");
       
       if (isBoosting) {
         const percentage = Math.max(0, (boostTimer / maxBoostTimer) * 100);
-        boostBar.style.width = `${percentage}%`;
-        boostBar.style.background = "#ff5500"; // Draining color
+        if (boostBar) {
+          boostBar.style.transform = `scaleX(${percentage / 100})`;
+          boostBar.style.background = "#ff5500"; // Draining color
+        }
         
         if (!wasBoostingLastFrame) {
           currentRunBoostCount++;
         }
       } else {
         const percentage = Math.max(0, (boostCharge / maxBoostCharge) * 100);
-        boostBar.style.width = `${percentage}%`;
-        boostBar.style.background = "#00ffff"; // Charging color
+        if (boostBar) {
+          boostBar.style.transform = `scaleX(${percentage / 100})`;
+          boostBar.style.background = "#00ffff"; // Charging color
+        }
       }
       
       const btnBoost = document.getElementById("btn-boost");
@@ -213,6 +227,31 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       
       wasBoostingLastFrame = isBoosting;
+
+      // Update Power-ups HUD
+      const magnetHud = document.getElementById("hud-pu-magnet");
+      if (isMagnetActive) {
+        magnetHud.classList.remove("hidden");
+        document.getElementById("hud-pu-magnet-time").innerText = Math.ceil(magnetTimer);
+      } else {
+        magnetHud.classList.add("hidden");
+      }
+
+      const shieldHud = document.getElementById("hud-pu-shield");
+      if (isShieldActive) {
+        shieldHud.classList.remove("hidden");
+        document.getElementById("hud-pu-shield-time").innerText = Math.ceil(shieldTimer);
+      } else {
+        shieldHud.classList.add("hidden");
+      }
+
+      const multiplierHud = document.getElementById("hud-pu-multiplier");
+      if (isMultiplierActive) {
+        multiplierHud.classList.remove("hidden");
+        document.getElementById("hud-pu-multiplier-time").innerText = Math.ceil(multiplierTimer);
+      } else {
+        multiplierHud.classList.add("hidden");
+      }
     },
     onGameOver: async (score, coins, hasContinued) => {
       lastCoins = 0;
@@ -220,14 +259,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (score > highScore) highScore = score;
 
       // Check Daily Challenge
-      if (!challengeCompletedToday) {
+      const currentChallenge = getDailyChallenge();
+      const completedToday = isChallengeCompletedToday();
+      
+      if (!completedToday) {
         let completed = false;
         if (currentChallenge.type === "coins" && coins >= currentChallenge.target) completed = true;
         if (currentChallenge.type === "score" && score >= currentChallenge.target) completed = true;
         if (currentChallenge.type === "boost" && currentRunBoostCount >= currentChallenge.target) completed = true;
 
         if (completed) {
-          challengeCompletedToday = true;
           localStorage.setItem(`se3d_daily_${new Date().toDateString()}`, "true");
           totalCoins += currentChallenge.reward;
           showModal("Challenge Complete!", `You completed the daily challenge and earned ${currentChallenge.reward} coins!`, false);
@@ -364,11 +405,11 @@ document.addEventListener("DOMContentLoaded", () => {
       upgradesPanel.classList.remove("hidden");
 
       if (selectedCarId === car.id) {
-        btnSelect.innerText = "SELECTED";
+        btnSelect.innerHTML = "SELECTED";
         btnSelect.style.background = "#333";
         btnSelect.style.color = "#fff";
       } else {
-        btnSelect.innerText = "SELECT";
+        btnSelect.innerHTML = "SELECT <span style='font-size: 0.7em; opacity: 0.8; margin-left: 5px;'>(50 Coins)</span>";
         btnSelect.style.background = "#ff5500";
         btnSelect.style.color = "#fff";
       }
@@ -803,9 +844,30 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btn-car-select").addEventListener("click", () => {
     const car = CARS[currentCarIndex];
     if (unlockedCars.includes(car.id)) {
-      selectedCarId = car.id;
-      localStorage.setItem("se3d_selectedCar", selectedCarId);
-      updateGarageUI();
+      if (selectedCarId === car.id) return; // Already selected
+      
+      const switchCost = 50;
+      showModal(
+        "Confirm Selection",
+        `Do you want to switch to ${car.name}? This will cost ${switchCost} coins.`,
+        true,
+        () => {
+          if (totalCoins >= switchCost) {
+            totalCoins -= switchCost;
+            saveState("totalCoins", totalCoins);
+            selectedCarId = car.id;
+            localStorage.setItem("se3d_selectedCar", selectedCarId);
+            updateGarageUI();
+            updateMenuStats();
+          } else {
+            showModal(
+              "Not Enough Coins",
+              "You don't have enough coins to switch cars.",
+              false
+            );
+          }
+        }
+      );
     }
   });
 
@@ -969,8 +1031,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btn-tutorial-start").addEventListener("click", () => {
       localStorage.setItem("se3d_tutorial_shown", "true");
       showScreen("main-menu");
+      engine.state = "menu";
     });
   } else {
     showScreen("main-menu");
+    engine.state = "menu";
   }
 });

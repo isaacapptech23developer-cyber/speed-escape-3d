@@ -1,15 +1,9 @@
-const CACHE_NAME = 'speed-escape-3d-v5';
+const CACHE_NAME = 'speed-escape-3d-v6';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './styles/style.css?v=5',
-    './scripts/main.js?v=5',
-    './scripts/engine.js?v=5',
-    './scripts/car.js?v=5',
-    './scripts/environment.js?v=5',
-    './scripts/entities.js?v=5',
-    './scripts/audio.js?v=5',
-    './scripts/ads.js?v=5',
+    './bundle.js?v=5',
     './assets/icons/icon-512.svg',
     './assets/arcade-racing.jpg',
     './privacy.html',

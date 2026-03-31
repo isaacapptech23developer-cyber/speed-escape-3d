@@ -6,7 +6,9 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 html, body {
-  width: 100vw;
+  width: 100%;
+  height: 100%;
+  height: 100vh;
   height: 100dvh;
   margin: 0;
   padding: 0;
@@ -231,10 +233,10 @@ h2 {
 }
 .level-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
-  max-height: 60vh;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  margin-bottom: 15px;
+  max-height: 55vh;
   overflow-y: auto;
   padding: 10px;
   width: 100%;
@@ -243,9 +245,9 @@ h2 {
   background: rgba(10, 15, 25, 0.8);
   border: 2px solid rgba(0, 255, 255, 0.3);
   color: white;
-  padding: 15px;
+  padding: 10px;
   border-radius: 12px;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
@@ -253,7 +255,7 @@ h2 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
   margin: 0;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
@@ -624,7 +626,8 @@ button:active {
 }
 .hud-top {
   width: 100%;
-  padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 20px max(20px, env(safe-area-inset-left));
+  padding: 10px;
+  padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 10px max(10px, env(safe-area-inset-left));
   display: flex;
   justify-content: space-between;
   pointer-events: auto;
@@ -676,8 +679,8 @@ button:active {
   }
 }
 .icon-btn {
-  width: clamp(40px, 10vw, 60px);
-  height: clamp(40px, 10vw, 60px);
+  width: clamp(35px, 10vmin, 60px);
+  height: clamp(35px, 10vmin, 60px);
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.5);
   color: white;
@@ -690,7 +693,8 @@ button:active {
 }
 #touch-controls {
   width: 100%;
-  padding: 20px max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+  padding: 10px;
+  padding: 10px max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -700,21 +704,21 @@ button:active {
   display: flex;
   flex-direction: row;
   align-items: flex-end;
-  gap: 15px;
+  gap: 10px;
 }
 .controls-right {
   display: flex;
   flex-direction: row;
   align-items: flex-end;
-  gap: 15px;
+  gap: 10px;
 }
 .touch-btn {
-  width: clamp(50px, 12vw, 70px);
-  height: clamp(50px, 12vw, 70px);
+  width: clamp(45px, 12vmin, 80px);
+  height: clamp(45px, 12vmin, 80px);
   border-radius: 50%;
   background: rgba(0, 255, 255, 0.1);
   color: #00ffff;
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(1.2rem, 4vmin, 2rem);
   backdrop-filter: blur(5px);
   border: 2px solid rgba(0, 255, 255, 0.5);
   display: flex;

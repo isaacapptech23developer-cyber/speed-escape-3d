@@ -5,14 +5,16 @@
   "version": "1.0.0",
   "description": "Speed Escape 3D",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "npm run build && node server.js",
     "start": "node server.js",
-    "build": "mkdir -p public && cp -r index.html scripts styles assets config sw.js privacy.html terms.html ads.txt public/"
+    "build": "npx esbuild scripts/main.js --bundle --outfile=bundle.js --target=es2015 --minify && mkdir -p public && cp -r index.html bundle.js styles assets config sw.js privacy.html terms.html ads.txt public/"
   },
   "dependencies": {
     "@capacitor/android": "^8.2.0",
     "@capacitor/cli": "^8.2.0",
     "@capacitor/core": "^8.2.0",
-    "express": "^4.21.2"
+    "esbuild": "^0.27.4",
+    "express": "^4.21.2",
+    "three": "^0.183.2"
   }
 }

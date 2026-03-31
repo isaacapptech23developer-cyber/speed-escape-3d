@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { onBeforeCompileCurve } from './environment.js?v=5';
-import { createCarMesh } from './car.js?v=5';
+import { onBeforeCompileCurve } from './environment.js?v=9';
+import { createCarMesh } from './car.js?v=9';
 
 export class EntityManager {
     constructor(scene) {
@@ -9,6 +9,8 @@ export class EntityManager {
         this.coins = [];
         this.boosters = [];
         this.magnets = [];
+        this.shields = [];
+        this.multipliers = [];
         this.traffic = [];
         
         this.obsGeom = new THREE.BoxGeometry(2, 1.5, 4);
@@ -41,10 +43,30 @@ export class EntityManager {
             emissiveIntensity: 0.8
         });
 
+        this.shieldGeom = new THREE.IcosahedronGeometry(0.6, 0);
+        this.shieldMat = new THREE.MeshStandardMaterial({
+            color: 0x00ff00,
+            metalness: 0.5,
+            roughness: 0.2,
+            emissive: 0x00ff00,
+            emissiveIntensity: 0.6
+        });
+
+        this.multiplierGeom = new THREE.OctahedronGeometry(0.6, 0);
+        this.multiplierMat = new THREE.MeshStandardMaterial({
+            color: 0xffaa00,
+            metalness: 0.8,
+            roughness: 0.1,
+            emissive: 0xffaa00,
+            emissiveIntensity: 0.8
+        });
+
         this.obsMat.onBeforeCompile = onBeforeCompileCurve;
         this.coinMat.onBeforeCompile = onBeforeCompileCurve;
         this.boosterMat.onBeforeCompile = onBeforeCompileCurve;
         this.magnetMat.onBeforeCompile = onBeforeCompileCurve;
+        this.shieldMat.onBeforeCompile = onBeforeCompileCurve;
+        this.multiplierMat.onBeforeCompile = onBeforeCompileCurve;
 
         this.lanes = [-5.33, 0, 5.33];
         this.lastSpawnZ = -200;
@@ -72,8 +94,10 @@ export class EntityManager {
             let obsChance = this.relaxedMode ? 0 : 0.2 + (effectiveLevel * 0.05); // Reduced obstacle chance
             let trafficChance = this.relaxedMode ? 0 : obsChance + 0.15; // Traffic chance
             let coinChance = this.relaxedMode ? 0.7 : trafficChance + 0.3;
-            let boosterChance = this.relaxedMode ? 0.9 : coinChance + 0.08; 
-            let magnetChance = this.relaxedMode ? 1.0 : boosterChance + 0.02; // 2% chance for magnet
+            let boosterChance = this.relaxedMode ? 0.8 : coinChance + 0.05; 
+            let magnetChance = this.relaxedMode ? 0.85 : boosterChance + 0.05; // 5% chance for magnet
+            let shieldChance = this.relaxedMode ? 0.9 : magnetChance + 0.05; // 5% chance for shield
+            let multiplierChance = this.relaxedMode ? 1.0 : shieldChance + 0.05; // 5% chance for multiplier
             
             if (r < obsChance) {
                 this.spawnObstacle();
@@ -85,6 +109,10 @@ export class EntityManager {
                 this.spawnBooster();
             } else if (r < magnetChance) {
                 this.spawnMagnet();
+            } else if (r < shieldChance) {
+                this.spawnShield();
+            } else if (r < multiplierChance) {
+                this.spawnMultiplier();
             }
             
             // Safe gap
@@ -236,6 +264,40 @@ export class EntityManager {
         magnet.visible = true;
     }
 
+    spawnShield() {
+        let shield = this.shields.find(s => !s.visible);
+        if (!shield) {
+            shield = new THREE.Mesh(this.shieldGeom, this.shieldMat);
+            
+            const light = new THREE.PointLight(0x00ff00, 0.8, 4);
+            shield.add(light);
+            
+            this.scene.add(shield);
+            this.shields.push(shield);
+        }
+        
+        const lane = this.lanes[Math.floor(Math.random() * this.lanes.length)];
+        shield.position.set(lane, 1.0, this.lastSpawnZ);
+        shield.visible = true;
+    }
+
+    spawnMultiplier() {
+        let multiplier = this.multipliers.find(m => !m.visible);
+        if (!multiplier) {
+            multiplier = new THREE.Mesh(this.multiplierGeom, this.multiplierMat);
+            
+            const light = new THREE.PointLight(0xffaa00, 0.8, 4);
+            multiplier.add(light);
+            
+            this.scene.add(multiplier);
+            this.multipliers.push(multiplier);
+        }
+        
+        const lane = this.lanes[Math.floor(Math.random() * this.lanes.length)];
+        multiplier.position.set(lane, 1.0, this.lastSpawnZ);
+        multiplier.visible = true;
+    }
+
     clearNearbyObstacles(playerZ) {
         const safeDistance = 100; // Clear obstacles within 100 units ahead
         
@@ -285,6 +347,28 @@ export class EntityManager {
             }
         });
 
+        // Rotate shields
+        this.shields.forEach(shield => {
+            if (shield.visible) {
+                shield.rotation.y += 2 * dt;
+                shield.rotation.x += 1 * dt;
+                if (shield.position.z > playerZ + 10) {
+                    shield.visible = false;
+                }
+            }
+        });
+
+        // Rotate multipliers
+        this.multipliers.forEach(multiplier => {
+            if (multiplier.visible) {
+                multiplier.rotation.y += 3 * dt;
+                multiplier.rotation.z += 1 * dt;
+                if (multiplier.position.z > playerZ + 10) {
+                    multiplier.visible = false;
+                }
+            }
+        });
+
         // Hide passed obstacles
         this.obstacles.forEach(obs => {
             if (obs.visible && obs.position.z > playerZ + 10) {
@@ -308,6 +392,8 @@ export class EntityManager {
         this.coins.forEach(c => c.visible = false);
         this.boosters.forEach(b => b.visible = false);
         this.magnets.forEach(m => m.visible = false);
+        this.shields.forEach(s => s.visible = false);
+        this.multipliers.forEach(m => m.visible = false);
         this.traffic.forEach(t => t.visible = false);
         this.lastSpawnZ = -200; // No obstacles at the beginning
         this.relaxedMode = false;
